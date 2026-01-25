@@ -1,8 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import './App.css'
-
-const DUVBO_SITE_ID = 9324 // Duvbo (metro)
-const SUNDBYBERG_SITE_ID = 9325 // Sundbyberg (train, tram)
 
 type TransportMode = 'METRO' | 'TRAM' | 'TRAIN' | 'BUS'
 
@@ -38,11 +35,50 @@ const LINE_COLORS: Record<number, string> = {
   48: '#EC619F',
 }
 
-const WALKING_TIMES: Record<TransportMode, number> = {
-  METRO: 10,
-  TRAM: 13,
-  TRAIN: 15,
-  BUS: 10,
+// Station configuration
+interface StationConfig {
+  siteId: number
+  name: string
+  mode: TransportMode
+  walkTime: number
+}
+
+// Default configuration (current settings)
+const DEFAULT_STATIONS: StationConfig[] = [
+  { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10 },
+  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAIN', walkTime: 15 },
+  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAM', walkTime: 13 },
+]
+
+// Parse query parameters to get station configuration
+// Format: ?stations=siteId:name:mode:walkTime,siteId:name:mode:walkTime,...
+// Example: ?stations=9324:Duvbo:METRO:10,9325:Sundbyberg:TRAIN:15,9325:Sundbyberg:TRAM:13
+function parseStationsFromQuery(): StationConfig[] {
+  const params = new URLSearchParams(window.location.search)
+  const stationsParam = params.get('stations')
+
+  if (!stationsParam) {
+    return DEFAULT_STATIONS
+  }
+
+  const stations: StationConfig[] = []
+  const entries = stationsParam.split(',')
+
+  for (const entry of entries) {
+    const parts = entry.split(':')
+    if (parts.length >= 4) {
+      const siteId = parseInt(parts[0], 10)
+      const name = decodeURIComponent(parts[1])
+      const mode = parts[2].toUpperCase() as TransportMode
+      const walkTime = parseInt(parts[3], 10)
+
+      if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
+        stations.push({ siteId, name, mode, walkTime })
+      }
+    }
+  }
+
+  return stations.length > 0 ? stations : DEFAULT_STATIONS
 }
 
 const STOCKHOLM_DIRECTIONS = [
@@ -126,12 +162,12 @@ function getLineColor(lineId: number, transportMode: TransportMode): string {
 interface DepartureRowProps {
   departure: Departure
   currentTime: Date
+  walkingTime: number
 }
 
-function DepartureRow({ departure, currentTime }: DepartureRowProps) {
+function DepartureRow({ departure, currentTime, walkingTime }: DepartureRowProps) {
   const displayTime = departure.display
   const transportMode = departure.line.transport_mode
-  const walkingTime = WALKING_TIMES[transportMode] || 10
   const lineColor = getLineColor(departure.line.id, transportMode)
 
   const departureTime = new Date(departure.expected || departure.scheduled)
@@ -185,13 +221,12 @@ interface TransportSectionProps {
   departures: Departure[]
   transportMode: TransportMode
   currentTime: Date
+  walkingTime: number
 }
 
-function TransportSection({ title, departures, transportMode, currentTime }: TransportSectionProps) {
+function TransportSection({ title, departures, transportMode, currentTime, walkingTime }: TransportSectionProps) {
   const typeConfig = TRANSPORT_TYPES[transportMode]
   if (!typeConfig) return null
-
-  const walkingTime = WALKING_TIMES[transportMode] || 10
 
   const filteredDepartures = departures
     .filter(d => d.line.transport_mode === transportMode)
@@ -210,7 +245,7 @@ function TransportSection({ title, departures, transportMode, currentTime }: Tra
       </div>
       <div className="departures-list">
         {filteredDepartures.map((dep, idx) => (
-          <DepartureRow key={`${dep.journey?.id || idx}-${dep.scheduled}`} departure={dep} currentTime={currentTime} />
+          <DepartureRow key={`${dep.journey?.id || idx}-${dep.scheduled}`} departure={dep} currentTime={currentTime} walkingTime={walkingTime} />
         ))}
       </div>
     </div>
@@ -224,31 +259,46 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Parse station configuration from query params (memoized)
+  const stationConfig = useMemo(() => parseStationsFromQuery(), [])
+
+  // Get unique site IDs and configured modes
+  const { uniqueSiteIds, configuredModes } = useMemo(() => {
+    const siteIds = [...new Set(stationConfig.map(s => s.siteId))]
+    const modes = new Set(stationConfig.map(s => s.mode))
+    return { uniqueSiteIds: siteIds, configuredModes: modes }
+  }, [stationConfig])
+
+  // Generate header title from unique station names
+  const headerTitle = useMemo(() => {
+    const uniqueNames = [...new Set(stationConfig.map(s => s.name))]
+    return uniqueNames.join(' / ')
+  }, [stationConfig])
+
   const fetchDepartures = useCallback(async () => {
     try {
-      const [duvboResponse, sundbybergResponse] = await Promise.all([
-        fetch(`https://transport.integration.sl.se/v1/sites/${DUVBO_SITE_ID}/departures`),
-        fetch(`https://transport.integration.sl.se/v1/sites/${SUNDBYBERG_SITE_ID}/departures`)
-      ])
+      // Fetch departures from all configured sites
+      const responses = await Promise.all(
+        uniqueSiteIds.map(siteId =>
+          fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`)
+        )
+      )
 
-      if (!duvboResponse.ok || !sundbybergResponse.ok) {
-        throw new Error(`API error: ${duvboResponse.status} / ${sundbybergResponse.status}`)
+      // Check for errors
+      const failedResponse = responses.find(r => !r.ok)
+      if (failedResponse) {
+        throw new Error(`API error: ${failedResponse.status}`)
       }
 
-      const [duvboData, sundbybergData] = await Promise.all([
-        duvboResponse.json() as Promise<DeparturesResponse>,
-        sundbybergResponse.json() as Promise<DeparturesResponse>
-      ])
+      // Parse all responses
+      const dataPromises = responses.map(r => r.json() as Promise<DeparturesResponse>)
+      const allData = await Promise.all(dataPromises)
 
-      const metroDepartures = duvboData.departures
-        .filter(d => d.line.transport_mode === 'METRO')
+      // Combine and filter departures
+      const allDepartures = allData
+        .flatMap(data => data.departures)
+        .filter(d => configuredModes.has(d.line.transport_mode))
         .filter(isTowardsStockholm)
-
-      const otherDepartures = sundbybergData.departures
-        .filter(d => d.line.transport_mode === 'TRAIN' || d.line.transport_mode === 'TRAM')
-        .filter(isTowardsStockholm)
-
-      const allDepartures = [...metroDepartures, ...otherDepartures]
 
       setDepartures(allDepartures)
       setLastUpdate(new Date())
@@ -259,7 +309,7 @@ function App() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [uniqueSiteIds, configuredModes])
 
   useEffect(() => {
     fetchDepartures()
@@ -280,13 +330,24 @@ function App() {
     return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }
 
+  // Build section titles dynamically based on config
+  const getSectionTitle = (mode: TransportMode, stationName: string): string => {
+    const modeNames: Record<TransportMode, string> = {
+      METRO: 'Tunnelbana',
+      TRAIN: 'Pendeltåg',
+      TRAM: 'Tvärbanan',
+      BUS: 'Buss',
+    }
+    return `${modeNames[mode]} från ${stationName}`
+  }
+
   return (
     <div className="app">
       <header className="header">
         <div className="header-content">
           <div className="sl-logo">SL</div>
           <div className="station-info">
-            <h1>Duvbo / Sundbyberg</h1>
+            <h1>{headerTitle}</h1>
             <p className="subtitle">Avgångar mot Stockholm C</p>
           </div>
           <div className="clock">
@@ -325,24 +386,16 @@ function App() {
 
         {!loading && departures.length > 0 && (
           <>
-            <TransportSection
-              title="Tunnelbana från Duvbo"
-              departures={departures}
-              transportMode="METRO"
-              currentTime={currentTime}
-            />
-            <TransportSection
-              title="Pendeltåg från Sundbyberg"
-              departures={departures}
-              transportMode="TRAIN"
-              currentTime={currentTime}
-            />
-            <TransportSection
-              title="Tvärbanan från Sundbyberg"
-              departures={departures}
-              transportMode="TRAM"
-              currentTime={currentTime}
-            />
+            {stationConfig.map((station, index) => (
+              <TransportSection
+                key={`${station.siteId}-${station.mode}-${index}`}
+                title={getSectionTitle(station.mode, station.name)}
+                departures={departures}
+                transportMode={station.mode}
+                currentTime={currentTime}
+                walkingTime={station.walkTime}
+              />
+            ))}
           </>
         )}
       </main>
