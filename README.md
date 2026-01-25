@@ -4,6 +4,8 @@ A real-time departure board for public transit from Duvbo and Sundbyberg station
 
 ## Features
 
+.
+
 - Real-time departures from SL API
 - Metro (Tunnelbana) from Duvbo
 - Commuter train (Pendeltag) from Sundbyberg
@@ -46,8 +48,10 @@ Live at: https://ktjn.github.io/sl-dashboard/
 ## API
 
 Uses the SL Transport API:
+
 - https://transport.integration.sl.se/v1/sites/{siteId}/departures
 
 Site IDs:
+
 - Duvbo: 9324
 - Sundbyberg: 9325
