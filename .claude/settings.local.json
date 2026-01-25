@@ -10,7 +10,15 @@
       "Bash(curl:*)",
       "Bash(python:*)",
       "Bash(node -e:*)",
-      "Bash(start http://localhost:5174)"
+      "Bash(start http://localhost:5174)",
+      "Bash(if [ -d \"C:/git/avg/node_modules\" ])",
+      "Bash(then rm -rf C:/git/avg/node_modules)",
+      "Bash(else echo \"No node_modules to remove\")",
+      "Bash(fi)",
+      "Bash(pnpm install)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm build:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
