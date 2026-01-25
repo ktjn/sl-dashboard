@@ -4,16 +4,23 @@ import './App.css'
 const DUVBO_SITE_ID = 9324 // Duvbo (metro)
 const SUNDBYBERG_SITE_ID = 9325 // Sundbyberg (train, tram)
 
-// Transport type configurations
-const TRANSPORT_TYPES = {
+type TransportMode = 'METRO' | 'TRAM' | 'TRAIN' | 'BUS'
+
+interface TransportTypeConfig {
+  name: string
+  icon: string
+  color: string
+  bgColor: string
+}
+
+const TRANSPORT_TYPES: Record<TransportMode, TransportTypeConfig> = {
   METRO: { name: 'Tunnelbana', icon: 'T', color: '#ffffff', bgColor: '#000000' },
   TRAM: { name: 'Spårvagn', icon: 'L', color: '#ffffff', bgColor: '#7D4E24' },
   TRAIN: { name: 'Pendeltåg', icon: 'J', color: '#ffffff', bgColor: '#EC619F' },
   BUS: { name: 'Buss', icon: 'B', color: '#ffffff', bgColor: '#1E88E5' }
 }
 
-// Line colors based on SL design
-const LINE_COLORS = {
+const LINE_COLORS: Record<number, string> = {
   // Metro blue line
   10: '#0066B3',
   11: '#0066B3',
@@ -31,14 +38,13 @@ const LINE_COLORS = {
   48: '#EC619F',
 }
 
-// Walking times in minutes
-const WALKING_TIMES = {
+const WALKING_TIMES: Record<TransportMode, number> = {
   METRO: 10,
   TRAM: 13,
   TRAIN: 15,
+  BUS: 10,
 }
 
-// Directions towards Stockholm C
 const STOCKHOLM_DIRECTIONS = [
   'kungsträdgården',
   'stockholm',
@@ -60,18 +66,52 @@ const STOCKHOLM_DIRECTIONS = [
   'hammarby',
 ]
 
-function isTowardsStockholm(departure) {
+interface Line {
+  id: number
+  designation: string
+  transport_mode: TransportMode
+}
+
+interface StopArea {
+  name: string
+}
+
+interface StopPoint {
+  designation: string
+}
+
+interface Journey {
+  id: string
+}
+
+interface Departure {
+  destination: string
+  direction?: string
+  display: string
+  scheduled: string
+  expected?: string
+  line: Line
+  stop_area?: StopArea
+  stop_point?: StopPoint
+  journey?: Journey
+}
+
+interface DeparturesResponse {
+  departures: Departure[]
+}
+
+function isTowardsStockholm(departure: Departure): boolean {
   const dest = departure.destination.toLowerCase()
   const dir = departure.direction?.toLowerCase() || ''
   return STOCKHOLM_DIRECTIONS.some(d => dest.includes(d) || dir.includes(d))
 }
 
-function formatTime(dateString) {
+function formatTime(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })
 }
 
-function getLineColor(lineId, transportMode) {
+function getLineColor(lineId: number, transportMode: TransportMode): string {
   if (LINE_COLORS[lineId]) return LINE_COLORS[lineId]
 
   switch (transportMode) {
@@ -83,16 +123,20 @@ function getLineColor(lineId, transportMode) {
   }
 }
 
-function DepartureRow({ departure, currentTime }) {
+interface DepartureRowProps {
+  departure: Departure
+  currentTime: Date
+}
+
+function DepartureRow({ departure, currentTime }: DepartureRowProps) {
   const displayTime = departure.display
   const transportMode = departure.line.transport_mode
   const walkingTime = WALKING_TIMES[transportMode] || 10
   const lineColor = getLineColor(departure.line.id, transportMode)
 
-  // Calculate time to leave
   const departureTime = new Date(departure.expected || departure.scheduled)
   const leaveTime = new Date(departureTime.getTime() - walkingTime * 60000)
-  const minutesUntilLeave = Math.round((leaveTime - currentTime) / 60000)
+  const minutesUntilLeave = Math.round((leaveTime.getTime() - currentTime.getTime()) / 60000)
 
   const isSoon = displayTime === 'Nu' || (displayTime.includes('min') && parseInt(displayTime) <= 2)
   const tooLate = minutesUntilLeave < -1
@@ -136,7 +180,14 @@ function DepartureRow({ departure, currentTime }) {
   )
 }
 
-function TransportSection({ title, departures, transportMode, currentTime }) {
+interface TransportSectionProps {
+  title: string
+  departures: Departure[]
+  transportMode: TransportMode
+  currentTime: Date
+}
+
+function TransportSection({ title, departures, transportMode, currentTime }: TransportSectionProps) {
   const typeConfig = TRANSPORT_TYPES[transportMode]
   if (!typeConfig) return null
 
@@ -167,15 +218,14 @@ function TransportSection({ title, departures, transportMode, currentTime }) {
 }
 
 function App() {
-  const [departures, setDepartures] = useState([])
+  const [departures, setDepartures] = useState<Departure[]>([])
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [lastUpdate, setLastUpdate] = useState(null)
-  const [error, setError] = useState(null)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchDepartures = useCallback(async () => {
     try {
-      // Fetch from both stations in parallel
       const [duvboResponse, sundbybergResponse] = await Promise.all([
         fetch(`https://transport.integration.sl.se/v1/sites/${DUVBO_SITE_ID}/departures`),
         fetch(`https://transport.integration.sl.se/v1/sites/${SUNDBYBERG_SITE_ID}/departures`)
@@ -186,11 +236,10 @@ function App() {
       }
 
       const [duvboData, sundbybergData] = await Promise.all([
-        duvboResponse.json(),
-        sundbybergResponse.json()
+        duvboResponse.json() as Promise<DeparturesResponse>,
+        sundbybergResponse.json() as Promise<DeparturesResponse>
       ])
 
-      // Get metro from Duvbo, train and tram from Sundbyberg
       const metroDepartures = duvboData.departures
         .filter(d => d.line.transport_mode === 'METRO')
         .filter(isTowardsStockholm)
@@ -199,7 +248,6 @@ function App() {
         .filter(d => d.line.transport_mode === 'TRAIN' || d.line.transport_mode === 'TRAM')
         .filter(isTowardsStockholm)
 
-      // Combine and sort by departure time
       const allDepartures = [...metroDepartures, ...otherDepartures]
 
       setDepartures(allDepartures)
@@ -207,20 +255,17 @@ function App() {
       setError(null)
     } catch (err) {
       console.error('Failed to fetch departures:', err)
-      setError(err.message)
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    // Initial load
     fetchDepartures()
 
-    // Update departures every 30 seconds
     const departureInterval = setInterval(fetchDepartures, 30000)
 
-    // Update clock every second
     const clockInterval = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
@@ -231,7 +276,7 @@ function App() {
     }
   }, [fetchDepartures])
 
-  const formatCurrentTime = (date) => {
+  const formatCurrentTime = (date: Date): string => {
     return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }
 
