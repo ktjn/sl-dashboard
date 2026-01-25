@@ -9,7 +9,8 @@
       "WebFetch(domain:transport.integration.sl.se)",
       "Bash(curl:*)",
       "Bash(python:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(start http://localhost:5174)"
     ]
   }
 }
