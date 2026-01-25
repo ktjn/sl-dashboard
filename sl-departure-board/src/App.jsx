@@ -31,6 +31,13 @@ const LINE_COLORS = {
   48: '#EC619F',
 }
 
+// Walking times in minutes
+const WALKING_TIMES = {
+  METRO: 10,
+  TRAM: 13,
+  TRAIN: 15,
+}
+
 // Directions towards Stockholm C
 const STOCKHOLM_DIRECTIONS = [
   'kungsträdgården',
@@ -76,13 +83,26 @@ function getLineColor(lineId, transportMode) {
   }
 }
 
-function DepartureRow({ departure }) {
+function DepartureRow({ departure, currentTime }) {
   const displayTime = departure.display
+  const transportMode = departure.line.transport_mode
+  const walkingTime = WALKING_TIMES[transportMode] || 10
+  const lineColor = getLineColor(departure.line.id, transportMode)
+
+  // Calculate time to leave
+  const departureTime = new Date(departure.expected || departure.scheduled)
+  const leaveTime = new Date(departureTime.getTime() - walkingTime * 60000)
+  const minutesUntilLeave = Math.round((leaveTime - currentTime) / 60000)
+
   const isSoon = displayTime === 'Nu' || (displayTime.includes('min') && parseInt(displayTime) <= 2)
-  const lineColor = getLineColor(departure.line.id, departure.line.transport_mode)
+  const tooLate = minutesUntilLeave < -1
+  const shouldLeaveNow = minutesUntilLeave >= -1 && minutesUntilLeave <= 0
+  const shouldLeaveSoon = minutesUntilLeave <= 2 && minutesUntilLeave > 0
+
+  const leaveDisplay = tooLate ? 'För sent' : minutesUntilLeave <= 0 ? 'Nu!' : `${minutesUntilLeave} min`
 
   return (
-    <div className={`departure-row ${isSoon ? 'departing-soon' : ''}`}>
+    <div className={`departure-row ${tooLate ? 'too-late' : shouldLeaveNow ? 'leave-now' : shouldLeaveSoon ? 'leave-soon' : ''}`}>
       <div className="line-info">
         <div className="line-badge" style={{ backgroundColor: lineColor }}>
           <span className="line-number">{departure.line.designation}</span>
@@ -94,7 +114,13 @@ function DepartureRow({ departure }) {
           <span className="via">{departure.stop_area.name}</span>
         )}
       </div>
-      {departure.stop_point?.designation && departure.line.transport_mode === 'TRAIN' && (
+      <div className="leave-time">
+        <span className="leave-label">Gå</span>
+        <span className={`leave-value ${tooLate ? 'too-late' : shouldLeaveNow ? 'blink urgent' : shouldLeaveSoon ? 'soon' : ''}`}>
+          {leaveDisplay}
+        </span>
+      </div>
+      {departure.stop_point?.designation && transportMode === 'TRAIN' && (
         <div className="track">
           <span className="track-label">Spår</span>
           <span className="track-number">{departure.stop_point.designation}</span>
@@ -110,9 +136,11 @@ function DepartureRow({ departure }) {
   )
 }
 
-function TransportSection({ title, departures, transportMode }) {
+function TransportSection({ title, departures, transportMode, currentTime }) {
   const typeConfig = TRANSPORT_TYPES[transportMode]
   if (!typeConfig) return null
+
+  const walkingTime = WALKING_TIMES[transportMode] || 10
 
   const filteredDepartures = departures
     .filter(d => d.line.transport_mode === transportMode)
@@ -127,10 +155,11 @@ function TransportSection({ title, departures, transportMode }) {
           {typeConfig.icon}
         </div>
         <span className="section-title">{title}</span>
+        <span className="walking-time">{walkingTime} min gångväg</span>
       </div>
       <div className="departures-list">
         {filteredDepartures.map((dep, idx) => (
-          <DepartureRow key={`${dep.journey?.id || idx}-${dep.scheduled}`} departure={dep} />
+          <DepartureRow key={`${dep.journey?.id || idx}-${dep.scheduled}`} departure={dep} currentTime={currentTime} />
         ))}
       </div>
     </div>
@@ -255,16 +284,19 @@ function App() {
               title="Tunnelbana från Duvbo"
               departures={departures}
               transportMode="METRO"
+              currentTime={currentTime}
             />
             <TransportSection
               title="Pendeltåg från Sundbyberg"
               departures={departures}
               transportMode="TRAIN"
+              currentTime={currentTime}
             />
             <TransportSection
               title="Tvärbanan från Sundbyberg"
               departures={departures}
               transportMode="TRAM"
+              currentTime={currentTime}
             />
           </>
         )}
