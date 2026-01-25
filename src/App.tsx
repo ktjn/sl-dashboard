@@ -168,9 +168,18 @@ function matchesDirection(departure: Departure, filter: 'stockholm' | 'all' | st
   if (filter === 'all') return true
   if (filter === 'stockholm') return isTowardsStockholm(departure)
   // Custom direction keywords
+  // Use = prefix for exact match: "=farsta" matches only "Farsta", not "Farsta strand"
   const dest = departure.destination.toLowerCase()
   const dir = departure.direction?.toLowerCase() || ''
-  return filter.some(keyword => dest.includes(keyword) || dir.includes(keyword))
+  return filter.some(keyword => {
+    if (keyword.startsWith('=')) {
+      // Exact match
+      const exact = keyword.slice(1)
+      return dest === exact || dir === exact
+    }
+    // Substring match
+    return dest.includes(keyword) || dir.includes(keyword)
+  })
 }
 
 function formatTime(dateString: string): string {
