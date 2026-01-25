@@ -50,35 +50,57 @@ const DEFAULT_STATIONS: StationConfig[] = [
   { siteId: 9325, name: 'Sundbyberg', mode: 'TRAM', walkTime: 13 },
 ]
 
+// Configuration parsed from query params
+interface AppConfig {
+  stations: StationConfig[]
+  directionFilter: 'stockholm' | 'all' | string[]
+}
+
 // Parse query parameters to get station configuration
 // Format: ?stations=siteId:name:mode:walkTime,siteId:name:mode:walkTime,...
 // Example: ?stations=9324:Duvbo:METRO:10,9325:Sundbyberg:TRAIN:15,9325:Sundbyberg:TRAM:13
-function parseStationsFromQuery(): StationConfig[] {
+// Direction filter: ?direction=stockholm (default), ?direction=all, or ?direction=farsta,sickla
+function parseConfigFromQuery(): AppConfig {
   const params = new URLSearchParams(window.location.search)
   const stationsParam = params.get('stations')
+  const directionParam = params.get('direction')
 
-  if (!stationsParam) {
-    return DEFAULT_STATIONS
-  }
+  // Parse stations
+  let stations: StationConfig[] = DEFAULT_STATIONS
+  if (stationsParam) {
+    const parsed: StationConfig[] = []
+    const entries = stationsParam.split(',')
 
-  const stations: StationConfig[] = []
-  const entries = stationsParam.split(',')
+    for (const entry of entries) {
+      const parts = entry.split(':')
+      if (parts.length >= 4) {
+        const siteId = parseInt(parts[0], 10)
+        const name = decodeURIComponent(parts[1])
+        const mode = parts[2].toUpperCase() as TransportMode
+        const walkTime = parseInt(parts[3], 10)
 
-  for (const entry of entries) {
-    const parts = entry.split(':')
-    if (parts.length >= 4) {
-      const siteId = parseInt(parts[0], 10)
-      const name = decodeURIComponent(parts[1])
-      const mode = parts[2].toUpperCase() as TransportMode
-      const walkTime = parseInt(parts[3], 10)
-
-      if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
-        stations.push({ siteId, name, mode, walkTime })
+        if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
+          parsed.push({ siteId, name, mode, walkTime })
+        }
       }
+    }
+    if (parsed.length > 0) {
+      stations = parsed
     }
   }
 
-  return stations.length > 0 ? stations : DEFAULT_STATIONS
+  // Parse direction filter
+  let directionFilter: 'stockholm' | 'all' | string[] = 'stockholm'
+  if (directionParam) {
+    if (directionParam.toLowerCase() === 'all') {
+      directionFilter = 'all'
+    } else if (directionParam.toLowerCase() !== 'stockholm') {
+      // Custom direction keywords
+      directionFilter = directionParam.toLowerCase().split(',').map(s => s.trim())
+    }
+  }
+
+  return { stations, directionFilter }
 }
 
 const STOCKHOLM_DIRECTIONS = [
@@ -140,6 +162,15 @@ function isTowardsStockholm(departure: Departure): boolean {
   const dest = departure.destination.toLowerCase()
   const dir = departure.direction?.toLowerCase() || ''
   return STOCKHOLM_DIRECTIONS.some(d => dest.includes(d) || dir.includes(d))
+}
+
+function matchesDirection(departure: Departure, filter: 'stockholm' | 'all' | string[]): boolean {
+  if (filter === 'all') return true
+  if (filter === 'stockholm') return isTowardsStockholm(departure)
+  // Custom direction keywords
+  const dest = departure.destination.toLowerCase()
+  const dir = departure.direction?.toLowerCase() || ''
+  return filter.some(keyword => dest.includes(keyword) || dir.includes(keyword))
 }
 
 function formatTime(dateString: string): string {
@@ -259,8 +290,9 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Parse station configuration from query params (memoized)
-  const stationConfig = useMemo(() => parseStationsFromQuery(), [])
+  // Parse configuration from query params (memoized)
+  const config = useMemo(() => parseConfigFromQuery(), [])
+  const { stations: stationConfig, directionFilter } = config
 
   // Get unique site IDs and configured modes
   const { uniqueSiteIds, configuredModes } = useMemo(() => {
@@ -274,6 +306,13 @@ function App() {
     const uniqueNames = [...new Set(stationConfig.map(s => s.name))]
     return uniqueNames.join(' / ')
   }, [stationConfig])
+
+  // Generate subtitle based on direction filter
+  const subtitle = useMemo(() => {
+    if (directionFilter === 'all') return 'Alla avgångar'
+    if (directionFilter === 'stockholm') return 'Avgångar mot Stockholm C'
+    return `Avgångar mot ${directionFilter.join(', ')}`
+  }, [directionFilter])
 
   const fetchDepartures = useCallback(async () => {
     try {
@@ -298,7 +337,7 @@ function App() {
       const allDepartures = allData
         .flatMap(data => data.departures)
         .filter(d => configuredModes.has(d.line.transport_mode))
-        .filter(isTowardsStockholm)
+        .filter(d => matchesDirection(d, directionFilter))
 
       setDepartures(allDepartures)
       setLastUpdate(new Date())
@@ -309,7 +348,7 @@ function App() {
     } finally {
       setLoading(false)
     }
-  }, [uniqueSiteIds, configuredModes])
+  }, [uniqueSiteIds, configuredModes, directionFilter])
 
   useEffect(() => {
     fetchDepartures()
@@ -348,7 +387,7 @@ function App() {
           <div className="sl-logo">SL</div>
           <div className="station-info">
             <h1>{headerTitle}</h1>
-            <p className="subtitle">Avgångar mot Stockholm C</p>
+            <p className="subtitle">{subtitle}</p>
           </div>
           <div className="clock">
             <div className="time">{formatCurrentTime(currentTime)}</div>
@@ -380,7 +419,7 @@ function App() {
 
         {!loading && !error && departures.length === 0 && (
           <div className="no-departures">
-            <p>Inga avgångar mot Stockholm C just nu</p>
+            <p>Inga avgångar just nu</p>
           </div>
         )}
 
