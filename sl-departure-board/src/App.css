@@ -1,0 +1,398 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'SL Gothic', Arial, sans-serif;
+  background: #1a1a2e;
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #0066b3 0%, #004a82 100%);
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.sl-logo {
+  background: #ffffff;
+  color: #0066b3;
+  font-weight: 900;
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  letter-spacing: -1px;
+}
+
+.station-info h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.station-info .subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.clock {
+  text-align: right;
+}
+
+.clock .time {
+  font-size: 2.5rem;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock .date {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-transform: capitalize;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Transport Sections */
+.transport-section {
+  background: #16213e;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #0f3460;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transport-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Departures List */
+.departures-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.departure-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease;
+}
+
+.departure-row:last-child {
+  border-bottom: none;
+}
+
+.departure-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.departure-row.departing-soon {
+  background: rgba(236, 97, 159, 0.1);
+}
+
+/* Line Badge */
+.line-info {
+  display: flex;
+  align-items: center;
+}
+
+.line-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 50px;
+  height: 32px;
+  padding: 0 0.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.line-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Destination */
+.destination-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.destination {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.via {
+  font-size: 0.85rem;
+  color: #8b9dc3;
+}
+
+/* Track */
+.track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.track-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8b9dc3;
+}
+
+.track-number {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Time Info */
+.time-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 80px;
+}
+
+.minutes {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.minutes.blink {
+  animation: blink 1s ease-in-out infinite;
+  color: #f97316;
+}
+
+.actual-time {
+  font-size: 0.85rem;
+  color: #8b9dc3;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Footer */
+.footer {
+  background: #0f3460;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #8b9dc3;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #8b9dc3;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #0066b3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error */
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #ef4444;
+}
+
+.error button {
+  margin-top: 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.error button:hover {
+  background: #dc2626;
+}
+
+/* No departures */
+.no-departures {
+  text-align: center;
+  padding: 4rem;
+  color: #8b9dc3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .clock {
+    text-align: center;
+  }
+
+  .clock .time {
+    font-size: 2rem;
+  }
+
+  .station-info h1 {
+    font-size: 1.5rem;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .departure-row {
+    grid-template-columns: 60px 1fr auto;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .track {
+    display: none;
+  }
+
+  .line-badge {
+    min-width: 44px;
+    height: 28px;
+    font-size: 1rem;
+  }
+
+  .destination {
+    font-size: 1rem;
+  }
+
+  .minutes {
+    font-size: 1.2rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #16213e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0f3460;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0066b3;
+}

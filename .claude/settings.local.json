@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(start http://localhost:5173)",
+      "WebSearch",
+      "WebFetch(domain:transport.integration.sl.se)",
+      "Bash(curl:*)",
+      "Bash(python:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}
