@@ -22,7 +22,13 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(pnpm outdated:*)",
-      "Bash(pnpm update:*)"
+      "Bash(pnpm update:*)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" config --local --list)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" remote:*)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" branch -a)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" log --oneline -20)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" log --format=\"%H %s\" -1)",
+      "Bash(git -C \"C:\\\\git\\\\avg\" log --pretty=format:\"%h - %s \\(%ai\\)\" -5)"
     ]
   }
 }
