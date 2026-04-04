@@ -18,8 +18,7 @@ const MODE_LABELS: Record<TransportMode, string> = {
 
 const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
 
-// @ts-ignore - unused parameter accepted
-export default function Configurator({ config, allDepartures, onClose }: ConfiguratorProps) {
+export default function Configurator({ config, allDepartures: _allDepartures, onClose }: ConfiguratorProps) {
   const [stations, setStations] = useState<StationConfig[]>(config.stations)
   const [query, setQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
