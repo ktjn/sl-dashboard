@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
+import { TRANSPORT_TYPES } from '../constants'
 import type { StationConfig, TransportMode, AppConfig } from '../types'
 import type { SiteDeparture } from '../hooks/useDepartures'
 
@@ -8,13 +9,6 @@ interface ConfiguratorProps {
   config: AppConfig
   allDepartures: SiteDeparture[]
   onClose: () => void
-}
-
-const MODE_LABELS: Record<TransportMode, string> = {
-  METRO: 'Tunnelbana',
-  TRAIN: 'Pendeltåg',
-  TRAM: 'Spårvagn',
-  BUS: 'Buss',
 }
 
 const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
@@ -204,7 +198,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                           ))
                         : MODES
                       ).map(m => (
-                        <option key={m} value={m}>{MODE_LABELS[m]}</option>
+                        <option key={m} value={m}>{TRANSPORT_TYPES[m].name}</option>
                       ))}
                     </select>
                     <input

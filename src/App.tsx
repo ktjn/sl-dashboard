@@ -5,14 +5,7 @@ import { useClock } from './hooks/useClock'
 import { parseConfigFromQuery } from './utils'
 import TransportSection from './components/TransportSection'
 import Configurator from './components/Configurator'
-import type { TransportMode } from './types'
-
-const SECTION_NAMES: Record<TransportMode, string> = {
-  METRO: 'Tunnelbana',
-  TRAIN: 'Pendeltåg',
-  TRAM: 'Tvärbanan',
-  BUS: 'Buss',
-}
+import { TRANSPORT_TYPES } from './constants'
 
 function formatCurrentTime(date: Date): string {
   return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -100,7 +93,7 @@ export default function App() {
             {stations.map((station, index) => (
               <TransportSection
                 key={`${station.siteId}-${station.mode}-${index}`}
-                title={`${SECTION_NAMES[station.mode]} från ${station.name}`}
+                title={`${TRANSPORT_TYPES[station.mode].name} från ${station.name}`}
                 departures={departures}
                 transportMode={station.mode}
                 currentTime={currentTime}
