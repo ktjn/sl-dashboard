@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
 import type { StationConfig, TransportMode, AppConfig } from '../types'
@@ -29,7 +29,25 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     config.stations.map(() => '')
   )
   const [directionDropdownOpen, setDirectionDropdownOpen] = useState<number | null>(null)
+  const [localDepartures, setLocalDepartures] = useState<SiteDeparture[]>(allDepartures)
+  const fetchedSiteIds = useRef(new Set(allDepartures.map(d => d.originSiteId)))
   const searchRef = useRef<HTMLDivElement>(null)
+
+  const fetchDeparturesForSite = useCallback(async (siteId: number) => {
+    if (fetchedSiteIds.current.has(siteId)) return
+    fetchedSiteIds.current.add(siteId)
+    try {
+      const r = await fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`)
+      if (!r.ok) return
+      const data = await r.json()
+      const newDeps: SiteDeparture[] = (data.departures ?? []).map(
+        (d: SiteDeparture['departure']) => ({ departure: d, originSiteId: siteId })
+      )
+      setLocalDepartures(prev => [...prev, ...newDeps])
+    } catch {
+      // no destinations available for this site
+    }
+  }, [])
 
   const { results, loading: searchLoading, error: searchError } = useStationSearch(query)
 
@@ -56,6 +74,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     setDirectionQueries(prev => [...prev, ''])
     setQuery('')
     setShowResults(false)
+    fetchDeparturesForSite(id)
   }
 
   function handleDragStart(index: number) {
@@ -111,7 +130,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   }
 
   function getDestinationOptions(station: StationConfig, query: string): string[] {
-    const allDestinations = allDepartures
+    const allDestinations = localDepartures
       .filter(({ departure: d, originSiteId }) =>
         originSiteId === station.siteId && d.line.transport_mode === station.mode
       )
@@ -193,8 +212,8 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                         <div className="configurator-direction-search-wrap">
                           <input
                             className="configurator-direction-search"
-                            placeholder={allDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
-                            disabled={allDepartures.length === 0}
+                            placeholder={localDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
+                            disabled={localDepartures.length === 0}
                             value={directionQueries[index] ?? ''}
                             onChange={e => {
                               setDirectionQueries(prev => prev.map((q, i) => (i === index ? e.target.value : q)))
