@@ -111,3 +111,32 @@ describe('buildQueryString — encoding', () => {
     expect(stations[0].direction).toBe('stockholm|centralen')
   })
 })
+
+// ─── Suite 4: Round-trip bugs — these FAIL on current code ───────────────────
+//
+// BUG: buildQueryString does not encode the `direction` field.
+//      The `:` and `,` characters are structural separators in the URL format.
+//      A direction value containing either character silently corrupts the round-trip.
+
+describe('round-trip bugs — FAIL on current code', () => {
+  it('BUG: direction containing ":" is truncated after round-trip', () => {
+    // buildQueryString writes direction raw: ...10:foo:bar
+    // parseConfigFromQuery splits on ':' → parts[4] = 'foo', ':bar' is lost
+    const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo:bar' }]
+    const url = buildQueryString(original)
+    setLocation('?' + url.split('?')[1])
+    const { stations } = parseConfigFromQuery()
+    expect(stations[0].direction).toBe('foo:bar') // actual: 'foo'
+  })
+
+  it('BUG: direction containing "," corrupts station list after round-trip', () => {
+    // buildQueryString writes direction raw: ...10:foo,bar
+    // parseConfigFromQuery splits on ',' first → 'bar' becomes a phantom entry,
+    // fails validation and is dropped; direction is also truncated to 'foo'
+    const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo,bar' }]
+    const url = buildQueryString(original)
+    setLocation('?' + url.split('?')[1])
+    const { stations } = parseConfigFromQuery()
+    expect(stations[0].direction).toBe('foo,bar') // actual: 'foo'
+  })
+})
