@@ -22,7 +22,7 @@ export default function App() {
   const config = useMemo(() => parseConfigFromQuery(), [])
   const { stations } = config
 
-  const { departures, loading, error, lastUpdate, refetch } = useDepartures(config)
+  const { departures, allDepartures, loading, error, lastUpdate, refetch } = useDepartures(config)
   const currentTime = useClock()
   const [showConfigurator, setShowConfigurator] = useState(false)
 
@@ -122,7 +122,7 @@ export default function App() {
       </footer>
 
       {showConfigurator && (
-        <Configurator config={config} onClose={() => setShowConfigurator(false)} />
+        <Configurator config={config} allDepartures={allDepartures} onClose={() => setShowConfigurator(false)} />
       )}
     </div>
   )

@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
-import type { StationConfig, TransportMode, AppConfig } from '../types'
+import type { StationConfig, TransportMode, AppConfig, Departure } from '../types'
 
 interface ConfiguratorProps {
   config: AppConfig
+  allDepartures: Departure[]
   onClose: () => void
 }
 
@@ -17,7 +18,7 @@ const MODE_LABELS: Record<TransportMode, string> = {
 
 const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
 
-export default function Configurator({ config, onClose }: ConfiguratorProps) {
+export default function Configurator({ config, allDepartures: _allDepartures, onClose }: ConfiguratorProps) {
   const [stations, setStations] = useState<StationConfig[]>(config.stations)
   const [query, setQuery] = useState('')
   const [showResults, setShowResults] = useState(false)

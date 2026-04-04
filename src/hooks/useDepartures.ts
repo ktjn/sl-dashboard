@@ -5,6 +5,7 @@ import type { Departure, DeparturesResponse, AppConfig } from '../types'
 
 interface UseDeparturesResult {
   departures: Departure[]
+  allDepartures: Departure[]
   loading: boolean
   error: string | null
   lastUpdate: Date | null
@@ -13,6 +14,7 @@ interface UseDeparturesResult {
 
 export function useDepartures(config: AppConfig): UseDeparturesResult {
   const [departures, setDepartures] = useState<Departure[]>([])
+  const [allDepartures, setAllDepartures] = useState<Departure[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
@@ -37,11 +39,20 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
         responses.map(r => r.json())
       )
 
-      const filtered = allData
-        .flatMap((data, index) => {
-          const siteId = uniqueSiteIds[index]
-          return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
-        })
+      const withOrigin = allData.flatMap((data, index) => {
+        const siteId = uniqueSiteIds[index]
+        return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
+      })
+
+      // All departures for configured siteId+mode, before direction filter
+      const allMatched = withOrigin
+        .filter(({ departure: d, originSiteId }) =>
+          stations.some(s => s.siteId === originSiteId && s.mode === d.line.transport_mode)
+        )
+        .map(({ departure }) => departure)
+
+      // Direction-filtered departures shown on the board
+      const filtered = withOrigin
         .filter(({ departure: d, originSiteId }) => {
           const station = stations.find(s => s.siteId === originSiteId && s.mode === d.line.transport_mode)
           if (!station) return false
@@ -50,6 +61,7 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
         .map(({ departure }) => departure)
 
       setDepartures(filtered)
+      setAllDepartures(allMatched)
       setLastUpdate(new Date())
       setError(null)
     } catch (err) {
@@ -67,5 +79,5 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
     return () => clearInterval(interval)
   }, [fetchDepartures])
 
-  return { departures, loading, error, lastUpdate, refetch: fetchDepartures }
+  return { departures, allDepartures, loading, error, lastUpdate, refetch: fetchDepartures }
 }
