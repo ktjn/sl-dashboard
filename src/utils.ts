@@ -1,4 +1,4 @@
-import { LINE_COLORS, STOCKHOLM_DIRECTIONS, DEFAULT_STATIONS } from './constants'
+import { LINE_COLORS, STOCKHOLM_DIRECTIONS, DEFAULT_STATIONS, TRANSPORT_TYPES } from './constants'
 import type { Departure, TransportMode, AppConfig, StationConfig } from './types'
 
 export function isTowardsStockholm(departure: Departure): boolean {
@@ -29,15 +29,7 @@ export function formatTime(dateString: string): string {
 }
 
 export function getLineColor(lineId: number, transportMode: TransportMode): string {
-  if (LINE_COLORS[lineId]) return LINE_COLORS[lineId]
-
-  switch (transportMode) {
-    case 'METRO': return '#0066B3'
-    case 'TRAM': return '#7D4E24'
-    case 'TRAIN': return '#EC619F'
-    case 'BUS': return '#1E88E5'
-    default: return '#666666'
-  }
+  return LINE_COLORS[lineId] ?? TRANSPORT_TYPES[transportMode]?.bgColor ?? '#666666'
 }
 
 // Parse query parameters to get station configuration.
