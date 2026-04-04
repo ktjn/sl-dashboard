@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
-import type { StationConfig, TransportMode, AppConfig } from '../types'
+import { MODES } from '../constants'
+import type { StationConfig, AppConfig } from '../types'
 import type { SiteDeparture } from '../hooks/useDepartures'
 import StationCard from './StationCard'
 
@@ -10,8 +11,6 @@ interface ConfiguratorProps {
   allDepartures: SiteDeparture[]
   onClose: () => void
 }
-
-const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
 
 export default function Configurator({ config, allDepartures, onClose }: ConfiguratorProps) {
   const [stations, setStations] = useState<StationConfig[]>(config.stations)

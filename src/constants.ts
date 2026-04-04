@@ -53,6 +53,8 @@ export const STOCKHOLM_DIRECTIONS = [
   'hammarby',
 ]
 
+export const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
+
 export const DEPARTURE_FETCH_INTERVAL_MS = 30_000
 export const CLOCK_TICK_INTERVAL_MS = 1_000
 

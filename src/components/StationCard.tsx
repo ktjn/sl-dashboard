@@ -1,8 +1,6 @@
 import type { StationConfig, TransportMode } from '../types'
 import type { SiteDeparture } from '../hooks/useDepartures'
-import { TRANSPORT_TYPES } from '../constants'
-
-const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
+import { TRANSPORT_TYPES, MODES } from '../constants'
 
 interface StationCardProps {
   station: StationConfig
