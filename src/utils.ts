@@ -37,7 +37,11 @@ export function getLineColor(lineId: number, transportMode: TransportMode): stri
 // Legacy fallback: ?direction=stockholm applies as default direction for stations without a 5th field
 export function parseConfigFromQuery(): AppConfig {
   const params = new URLSearchParams(window.location.search)
-  const stationsParam = params.get('stations')
+  // Read stations raw from the search string — URLSearchParams.get() auto-decodes
+  // percent-encoding, which would turn encoded separators (%3A, %2C) back into
+  // raw ':' and ',' before we can split on them.
+  const rawStationsMatch = window.location.search.match(/[?&]stations=([^&]*)/)
+  const stationsParam = rawStationsMatch ? rawStationsMatch[1] : null
   const legacyDirection = params.get('direction')?.toLowerCase() ?? 'stockholm'
 
   let stations: StationConfig[] = DEFAULT_STATIONS
@@ -50,7 +54,7 @@ export function parseConfigFromQuery(): AppConfig {
         const name = decodeURIComponent(parts[1])
         const mode = parts[2].toUpperCase() as TransportMode
         const walkTime = parseInt(parts[3], 10)
-        const direction = parts[4] ?? legacyDirection
+        const direction = parts[4] ? decodeURIComponent(parts[4]) : legacyDirection
         if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
           parsed.push({ siteId, name, mode, walkTime, direction })
         }
@@ -66,7 +70,7 @@ export function parseConfigFromQuery(): AppConfig {
 // Format: origin + pathname + ?stations=siteId:name:mode:walkTime:direction,...
 export function buildQueryString(stations: StationConfig[]): string {
   const parts = stations.map(s =>
-    [s.siteId, encodeURIComponent(s.name), s.mode, s.walkTime, s.direction].join(':')
+    [s.siteId, encodeURIComponent(s.name), s.mode, s.walkTime, encodeURIComponent(s.direction)].join(':')
   )
   return `${window.location.origin}${window.location.pathname}?stations=${parts.join(',')}`
 }
