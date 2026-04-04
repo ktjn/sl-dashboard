@@ -58,19 +58,26 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
 
   // When departure data loads for a site, auto-correct any station whose mode is not available there
   useEffect(() => {
-    setStations(prev => prev.map(station => {
-      const siteHasData = availableDepartures.some(d => d.originSiteId === station.siteId)
-      if (!siteHasData) return station
-      const validModes = MODES.filter(m =>
-        availableDepartures.some(d =>
-          d.originSiteId === station.siteId && d.departure.line.transport_mode === m
+    setStations(prev => {
+      let changed = false
+      const next = prev.map(station => {
+        const siteHasData = availableDepartures.some(d => d.originSiteId === station.siteId)
+        if (!siteHasData) return station
+
+        const validModes = MODES.filter(m =>
+          availableDepartures.some(d =>
+            d.originSiteId === station.siteId && d.departure.line.transport_mode === m
+          )
         )
-      )
-      if (validModes.length > 0 && !validModes.includes(station.mode)) {
-        return { ...station, mode: validModes[0], direction: 'all' }
-      }
-      return station
-    }))
+
+        if (validModes.length > 0 && !validModes.includes(station.mode)) {
+          changed = true
+          return { ...station, mode: validModes[0], direction: 'all' }
+        }
+        return station
+      })
+      return changed ? next : prev
+    })
   }, [availableDepartures])
 
   const { results, loading: searchLoading, error: searchError } = useStationSearch(query)

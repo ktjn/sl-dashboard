@@ -13,8 +13,15 @@ vi.mock('./StationCard', () => ({
   )
 }))
 
+// Define search mock outside to be controllable
+const mockSearchState = {
+  results: [] as any[],
+  loading: false,
+  error: null as string | null
+}
+
 vi.mock('../hooks/useStationSearch', () => ({
-  useStationSearch: () => ({ results: [], loading: false, error: null })
+  useStationSearch: () => mockSearchState
 }))
 
 const mockFetch = vi.fn()
@@ -24,6 +31,16 @@ describe('Configurator', () => {
   beforeEach(() => {
     cleanup()
     vi.clearAllMocks()
+    mockSearchState.results = []
+    mockSearchState.loading = false
+    mockSearchState.error = null
+    
+    // Default fetch mock
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ departures: [] })
+    })
+
     // Reset clipboard
     Object.assign(navigator, {
       clipboard: {
@@ -68,5 +85,31 @@ describe('Configurator', () => {
     fireEvent.click(screen.getByText('Remove'))
     
     expect(screen.queryByTestId('station-card')).toBeNull()
+  })
+
+  it('fetches departures when a new station is added', async () => {
+    // Set up search result
+    mockSearchState.results = [{ id: 1234, name: 'Search Result' }]
+
+    render(<Configurator config={config} allDepartures={[]} onClose={vi.fn()} />)
+
+    // Initially 1 fetch for the initial station
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('9999'))
+
+    // Type in search (trigger showResults)
+    const searchInput = screen.getByPlaceholderText(/Sök stationsnamn/)
+    fireEvent.change(searchInput, { target: { value: 'search' } })
+
+    // Click the result
+    const resultItem = await screen.findByText('Search Result')
+    fireEvent.click(resultItem)
+
+    // Should trigger fetch for 1234
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('1234'))
+    })
+    
+    // Should now have 2 station cards
+    expect(screen.getAllByTestId('station-card')).toHaveLength(2)
   })
 })
