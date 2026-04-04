@@ -49,11 +49,6 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
         return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
       })
 
-      // All departures for configured sites (all modes), before direction filter
-      const allMatched = withOrigin.filter(({ originSiteId }) =>
-        stations.some(s => s.siteId === originSiteId)
-      )
-
       // Direction-filtered departures shown on the board
       const filtered = withOrigin
         .filter(({ departure: d, originSiteId }) => {
@@ -64,7 +59,7 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
         .map(({ departure }) => departure)
 
       setDepartures(filtered)
-      setAllDepartures(allMatched)
+      setAllDepartures(withOrigin)
       setLastUpdate(new Date())
       setError(null)
     } catch (err) {
@@ -73,8 +68,7 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
     } finally {
       setLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(stations)])
+  }, [stations])
 
   useEffect(() => {
     fetchDepartures()
