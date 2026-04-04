@@ -25,9 +25,9 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   const { stations } = config
-  const uniqueSiteIds = [...new Set(stations.map(s => s.siteId))]
 
   const fetchDepartures = useCallback(async () => {
+    const uniqueSiteIds = [...new Set(stations.map(s => s.siteId))]
     try {
       const responses = await Promise.all(
         uniqueSiteIds.map(siteId =>
