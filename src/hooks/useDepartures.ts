@@ -3,9 +3,14 @@ import { DEPARTURE_FETCH_INTERVAL_MS } from '../constants'
 import { matchesDirection } from '../utils'
 import type { Departure, DeparturesResponse, AppConfig } from '../types'
 
+export interface SiteDeparture {
+  departure: Departure
+  originSiteId: number
+}
+
 interface UseDeparturesResult {
   departures: Departure[]
-  allDepartures: Departure[]
+  allDepartures: SiteDeparture[]
   loading: boolean
   error: string | null
   lastUpdate: Date | null
@@ -14,7 +19,7 @@ interface UseDeparturesResult {
 
 export function useDepartures(config: AppConfig): UseDeparturesResult {
   const [departures, setDepartures] = useState<Departure[]>([])
-  const [allDepartures, setAllDepartures] = useState<Departure[]>([])
+  const [allDepartures, setAllDepartures] = useState<SiteDeparture[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
@@ -45,11 +50,9 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
       })
 
       // All departures for configured sites (all modes), before direction filter
-      const allMatched = withOrigin
-        .filter(({ originSiteId }) =>
-          stations.some(s => s.siteId === originSiteId)
-        )
-        .map(({ departure }) => departure)
+      const allMatched = withOrigin.filter(({ originSiteId }) =>
+        stations.some(s => s.siteId === originSiteId)
+      )
 
       // Direction-filtered departures shown on the board
       const filtered = withOrigin

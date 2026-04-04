@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
-import type { StationConfig, TransportMode, AppConfig, Departure } from '../types'
+import type { StationConfig, TransportMode, AppConfig } from '../types'
+import type { SiteDeparture } from '../hooks/useDepartures'
 
 interface ConfiguratorProps {
   config: AppConfig
-  allDepartures: Departure[]
+  allDepartures: SiteDeparture[]
   onClose: () => void
 }
 
@@ -111,8 +112,10 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
 
   function getDestinationOptions(station: StationConfig, query: string): string[] {
     const allDestinations = allDepartures
-      .filter(d => d.line.transport_mode === station.mode)
-      .map(d => d.destination)
+      .filter(({ departure: d, originSiteId }) =>
+        originSiteId === station.siteId && d.line.transport_mode === station.mode
+      )
+      .map(({ departure: d }) => d.destination)
     const unique = [...new Set(allDestinations)]
     const q = query.trim().toLowerCase()
     if (!q) return unique
