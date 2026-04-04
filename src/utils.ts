@@ -16,7 +16,7 @@ export function matchesDirection(departure: Departure, direction: string): boole
   const dir = departure.direction?.toLowerCase() || ''
   return keywords.some(keyword => {
     if (keyword.startsWith('=')) {
-      const exact = keyword.slice(1)
+      const exact = keyword.slice(1).toLowerCase()
       return dest === exact || dir === exact
     }
     const kw = keyword.toLowerCase()

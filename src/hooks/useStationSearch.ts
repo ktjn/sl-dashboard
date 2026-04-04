@@ -13,6 +13,10 @@ interface UseStationSearchResult {
 
 let allSitesCache: SiteSearchResult[] | null = null
 
+export function __clearCacheForTests() {
+  allSitesCache = null
+}
+
 export function useStationSearch(query: string): UseStationSearchResult {
   const [allSites, setAllSites] = useState<SiteSearchResult[]>(allSitesCache ?? [])
   const [loading, setLoading] = useState(allSitesCache === null)

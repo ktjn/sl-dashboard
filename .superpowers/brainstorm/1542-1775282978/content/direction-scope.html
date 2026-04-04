@@ -1,0 +1,22 @@
+<h2>Direction filter — global or per-station?</h2>
+<p class="subtitle">The direction filter hides departures going the wrong way (e.g. away from Stockholm). Should it apply to everything, or be set per station?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Global — one setting for all stations</h3>
+      <p>One dropdown at the top of the configurator: <strong>Towards Stockholm</strong> / <strong>All directions</strong> / <strong>Custom keywords</strong>. Applies to every station section on the dashboard.</p>
+      <p style="margin-top:8px;color:#888;font-size:0.9em">Matches how the URL works today: <code>?direction=stockholm</code></p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Per-station — each entry has its own direction</h3>
+      <p>Each station card in the list gets its own direction setting. Useful if you commute from two different areas with different "towards" concepts.</p>
+      <p style="margin-top:8px;color:#888;font-size:0.9em">Would require changing the URL format — currently one global <code>?direction=</code></p>
+    </div>
+  </div>
+</div>

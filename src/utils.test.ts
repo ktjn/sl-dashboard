@@ -122,32 +122,23 @@ describe('buildQueryString — encoding', () => {
   })
 })
 
-// ─── Suite 4: Round-trip bugs — these FAIL on current code ───────────────────
-//
-// BUG: buildQueryString does not encode the `direction` field.
-//      The `:` and `,` characters are structural separators in the URL format.
-//      A direction value containing either character silently corrupts the round-trip.
+// ─── Suite 4: Round-trip verification ───────────────────
 
-describe('round-trip bugs — FAIL on current code', () => {
-  it('BUG: direction containing ":" is truncated after round-trip', () => {
-    // buildQueryString writes direction raw: ...10:foo:bar
-    // parseConfigFromQuery splits on ':' → parts[4] = 'foo', ':bar' is lost
+describe('round-trip verification', () => {
+  it('direction containing ":" is preserved after round-trip', () => {
     const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo:bar' }]
     const url = buildQueryString(original)
     setLocation('?' + url.split('?')[1])
     const { stations } = parseConfigFromQuery()
-    expect(stations[0].direction).toBe('foo:bar') // actual: 'foo'
+    expect(stations[0].direction).toBe('foo:bar')
   })
 
-  it('BUG: direction containing "," corrupts station list after round-trip', () => {
-    // buildQueryString writes direction raw: ...10:foo,bar
-    // parseConfigFromQuery splits on ',' first → 'bar' becomes a phantom entry,
-    // fails validation and is dropped; direction is also truncated to 'foo'
+  it('direction containing "," is preserved after round-trip', () => {
     const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo,bar' }]
     const url = buildQueryString(original)
     setLocation('?' + url.split('?')[1])
     const { stations } = parseConfigFromQuery()
-    expect(stations[0].direction).toBe('foo,bar') // actual: 'foo'
+    expect(stations[0].direction).toBe('foo,bar')
   })
 })
 
@@ -172,7 +163,15 @@ describe('matchesDirection — case-insensitive keyword matching', () => {
     expect(matchesDirection(makeDeparture('solna'), 'Alvik')).toBe(false)
   })
 
-  it('direction "all" always matches', () => {
-    expect(matchesDirection(makeDeparture('anywhere'), 'all')).toBe(true)
+  it('matches exactly when using "=" prefix', () => {
+    // Departure: 'Farsta'
+    // Pattern: '=Farsta' -> Match
+    // Pattern: '=Farsta centrum' -> No match
+    expect(matchesDirection(makeDeparture('Farsta'), '=Farsta')).toBe(true)
+    expect(matchesDirection(makeDeparture('Farsta centrum'), '=Farsta')).toBe(false)
+  })
+
+  it('is case-insensitive even with "=" prefix', () => {
+    expect(matchesDirection(makeDeparture('farsta'), '=Farsta')).toBe(true)
   })
 })

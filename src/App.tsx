@@ -1,23 +1,33 @@
 import { useState, useMemo, useEffect } from 'react'
 import './App.css'
 import { useDepartures } from './hooks/useDepartures'
-import { useClock } from './hooks/useClock'
 import { parseConfigFromQuery } from './utils'
 import TransportSection from './components/TransportSection'
 import Configurator from './components/Configurator'
+import Clock from './components/Clock'
 import { TRANSPORT_TYPES } from './constants'
+import { useClock } from './hooks/useClock'
 
 function formatCurrentTime(date: Date): string {
   return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
 export default function App() {
-  const config = useMemo(() => parseConfigFromQuery(), [])
+  const [config, setConfig] = useState(() => parseConfigFromQuery())
   const { stations } = config
 
-  const { departures, allDepartures, loading, error, lastUpdate, refetch } = useDepartures(config)
+  const { groupedDepartures, allDepartures, loading, error, lastUpdate, refetch } = useDepartures(config)
   const currentTime = useClock()
   const [showConfigurator, setShowConfigurator] = useState(false)
+
+  // Listen for URL changes (e.g. from history.pushState in Configurator)
+  useEffect(() => {
+    const handleUrlChange = () => {
+      setConfig(parseConfigFromQuery())
+    }
+    window.addEventListener('popstate', handleUrlChange)
+    return () => window.removeEventListener('popstate', handleUrlChange)
+  }, [])
 
   const headerTitle = useMemo(() => {
     const uniqueNames = [...new Set(stations.map(s => s.name))]
@@ -48,16 +58,7 @@ export default function App() {
             <p className="subtitle">{subtitle}</p>
           </div>
           <div className="header-right">
-            <div className="clock">
-              <div className="time">{formatCurrentTime(currentTime)}</div>
-              <div className="date">
-                {currentTime.toLocaleDateString('sv-SE', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long'
-                })}
-              </div>
-            </div>
+            <Clock />
             {!showConfigurator && (
               <button
                 className="settings-button"
@@ -86,18 +87,18 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !error && departures.length === 0 && (
+        {!loading && !error && groupedDepartures.every(g => g.departures.length === 0) && (
           <div className="no-departures">
             <p>Inga avgångar just nu</p>
           </div>
         )}
 
-        {!loading && departures.length > 0 && (
+        {!loading && (
           <>
             {stations.map((station, index) => {
-              const stationDepartures = departures
-                .filter(d => d.originSiteId === station.siteId && d.departure.line.transport_mode === station.mode)
-                .map(d => d.departure)
+              const stationDepartures = groupedDepartures.find(g => g.stationIndex === index)?.departures ?? []
+              if (stationDepartures.length === 0) return null
+
               return (
                 <TransportSection
                   key={`${station.siteId}-${station.mode}-${index}`}

@@ -1,0 +1,40 @@
+<h2>Where does the URL creator live?</h2>
+<p class="subtitle">The dashboard is deployed at a fixed URL. Users configure it via query parameters. Where should the configuration UI appear?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Separate page at <code>/configure</code></h3>
+      <p>A dedicated configuration page. You build your station list there, copy the generated URL, and open it as a new tab. The dashboard itself is unchanged.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Clean separation — dashboard stays fast and focused</li><li>Easy to share the configurator URL with others</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Context switch — you build config elsewhere and paste into a new tab</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Overlay / modal on the dashboard</h3>
+      <p>A settings icon on the dashboard opens a panel. You edit, click "Apply", and the page reloads with the new URL. Never leaves the dashboard.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Seamless — configure and see results in one place</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Adds UI chrome to a display that's meant to be clean and always-on</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Separate app / standalone HTML file</h3>
+      <p>A completely independent <code>configurator.html</code> served alongside the dashboard. No routing needed — just open it separately to build your URL.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Simplest to build — no routing, no React Router needed</li><li>Zero impact on dashboard bundle size</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Two separate codebases / entry points to maintain</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

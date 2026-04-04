@@ -37,7 +37,13 @@
       "Bash(bash:*)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d\\), 'results'\\); [print\\(r['id'], r['name']\\) for r in d[:10]]\")",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d\\), 'results'\\); [print\\(r['id'], r['name']\\) for r in d[:5]]\")",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('id'\\), d.get\\('name'\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('id'\\), d.get\\('name'\\)\\)\")",
+      "Bash(git:*)",
+      "Bash(pnpm tsc:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npm test:*)"
     ]
   }
 }
