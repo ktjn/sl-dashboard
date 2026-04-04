@@ -12,15 +12,18 @@ interface ConfiguratorProps {
   onClose: () => void
 }
 
+interface StationConfigWithQuery extends StationConfig {
+  directionQuery: string
+}
+
 export default function Configurator({ config, allDepartures, onClose }: ConfiguratorProps) {
-  const [stations, setStations] = useState<StationConfig[]>(config.stations)
+  const [stations, setStations] = useState<StationConfigWithQuery[]>(() =>
+    config.stations.map(s => ({ ...s, directionQuery: '' }))
+  )
   const [query, setQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
-  const [directionQueries, setDirectionQueries] = useState<string[]>(() =>
-    config.stations.map(() => '')
-  )
   const [directionDropdownOpen, setDirectionDropdownOpen] = useState<number | null>(null)
   const [extraDepartures, setExtraDepartures] = useState<SiteDeparture[]>([])
   const fetchedSiteIds = useRef(new Set(allDepartures.map(d => d.originSiteId)))
@@ -69,25 +72,24 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
 
   const generatedUrl = buildQueryString(stations)
 
-  function updateStation(index: number, patch: Partial<StationConfig>) {
+  function updateStation(index: number, patch: Partial<StationConfigWithQuery>) {
     setStations(prev => prev.map((s, i) => i === index ? { ...s, ...patch } : s))
   }
 
   function removeStation(index: number) {
     setStations(prev => prev.filter((_, i) => i !== index))
-    setDirectionQueries(prev => prev.filter((_, i) => i !== index))
   }
 
   function addStation(id: number, name: string) {
-    const newStation: StationConfig = {
+    const newStation: StationConfigWithQuery = {
       siteId: id,
       name,
       mode: 'METRO',
       walkTime: 10,
       direction: 'all',
+      directionQuery: '',
     }
     setStations(prev => [...prev, newStation])
-    setDirectionQueries(prev => [...prev, ''])
     setQuery('')
     setShowResults(false)
     fetchDeparturesForSite(id)
@@ -105,12 +107,6 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       next.splice(index, 0, moved)
       return next
     })
-    setDirectionQueries(prev => {
-      const next = [...prev]
-      const [moved] = next.splice(dragIndex, 1)
-      next.splice(index, 0, moved)
-      return next
-    })
     setDragIndex(null)
   }
 
@@ -121,7 +117,9 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   }
 
   function handleApply() {
-    window.location.href = generatedUrl
+    window.history.pushState({}, '', generatedUrl)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+    onClose()
   }
 
   function addDirectionTag(index: number, tag: string) {
@@ -129,8 +127,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     const current = direction === 'all' ? [] : direction.split('|').filter(Boolean)
     if (current.includes(tag)) return
     const next = [...current, tag]
-    updateStation(index, { direction: next.join('|') })
-    setDirectionQueries(prev => prev.map((q, i) => (i === index ? '' : q)))
+    updateStation(index, { direction: next.join('|'), directionQuery: '' })
     setDirectionDropdownOpen(null)
   }
 
@@ -158,7 +155,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                 <button
                   type="button"
                   className="configurator-clear-all"
-                  onClick={() => { setStations([]); setDirectionQueries([]) }}
+                  onClick={() => { setStations([]) }}
                 >
                   Rensa alla
                 </button>
@@ -173,7 +170,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                 station={station}
                 index={index}
                 isDragging={dragIndex === index}
-                directionQuery={directionQueries[index] ?? ''}
+                directionQuery={station.directionQuery}
                 directionDropdownOpen={directionDropdownOpen === index}
                 availableDepartures={availableDepartures}
                 onUpdate={(patch) => updateStation(index, patch)}
@@ -182,7 +179,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                 onDrop={() => handleDrop(index)}
                 onDragEnd={() => setDragIndex(null)}
                 onDirectionQueryChange={(value) =>
-                  setDirectionQueries(prev => prev.map((q, i) => (i === index ? value : q)))
+                  updateStation(index, { directionQuery: value })
                 }
                 onDirectionDropdownOpen={() => setDirectionDropdownOpen(index)}
                 onDirectionDropdownClose={() => setDirectionDropdownOpen(null)}

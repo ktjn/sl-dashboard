@@ -8,8 +8,13 @@ export interface SiteDeparture {
   originSiteId: number
 }
 
+export interface GroupedDepartures {
+  stationIndex: number
+  departures: Departure[]
+}
+
 interface UseDeparturesResult {
-  departures: SiteDeparture[]
+  groupedDepartures: GroupedDepartures[]
   allDepartures: SiteDeparture[]
   loading: boolean
   error: string | null
@@ -18,7 +23,7 @@ interface UseDeparturesResult {
 }
 
 export function useDepartures(config: AppConfig): UseDeparturesResult {
-  const [departures, setDepartures] = useState<SiteDeparture[]>([])
+  const [groupedDepartures, setGroupedDepartures] = useState<GroupedDepartures[]>([])
   const [allDepartures, setAllDepartures] = useState<SiteDeparture[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -29,35 +34,42 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
   const fetchDepartures = useCallback(async () => {
     const uniqueSiteIds = [...new Set(stations.map(s => s.siteId))]
     try {
-      const responses = await Promise.all(
+      const results = await Promise.allSettled(
         uniqueSiteIds.map(siteId =>
           fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`)
+            .then(r => {
+              if (!r.ok) throw new Error(`API error: ${r.status}`)
+              return r.json() as Promise<DeparturesResponse>
+            })
         )
       )
 
-      const failedResponse = responses.find(r => !r.ok)
-      if (failedResponse) {
-        throw new Error(`API error: ${failedResponse.status}`)
-      }
-
-      const allData: DeparturesResponse[] = await Promise.all(
-        responses.map(r => r.json())
-      )
-
-      const withOrigin = allData.flatMap((data, index) => {
-        const siteId = uniqueSiteIds[index]
-        return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
+      const withOrigin: SiteDeparture[] = []
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const siteId = uniqueSiteIds[index]
+          result.value.departures.forEach(d => {
+            withOrigin.push({ departure: d, originSiteId: siteId })
+          })
+        } else {
+          console.error(`Failed to fetch for site ${uniqueSiteIds[index]}:`, result.reason)
+        }
       })
 
-      // Direction-filtered departures shown on the board
-      const filtered = withOrigin
-        .filter(({ departure: d, originSiteId }) => {
-          const station = stations.find(s => s.siteId === originSiteId && s.mode === d.line.transport_mode)
-          if (!station) return false
-          return matchesDirection(d, station.direction)
-        })
+      if (withOrigin.length === 0 && results.some(r => r.status === 'rejected')) {
+        throw new Error('Kunde inte hämta några avgångar')
+      }
 
-      setDepartures(filtered)
+      // Group departures by station index
+      const grouped = stations.map((station, index) => {
+        const filtered = withOrigin
+          .filter(d => d.originSiteId === station.siteId && d.departure.line.transport_mode === station.mode)
+          .filter(d => matchesDirection(d.departure, station.direction))
+          .map(d => d.departure)
+        return { stationIndex: index, departures: filtered }
+      })
+
+      setGroupedDepartures(grouped)
       setAllDepartures(withOrigin)
       setLastUpdate(new Date())
       setError(null)
@@ -75,5 +87,5 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
     return () => clearInterval(interval)
   }, [fetchDepartures])
 
-  return { departures, allDepartures, loading, error, lastUpdate, refetch: fetchDepartures }
+  return { groupedDepartures, allDepartures, loading, error, lastUpdate, refetch: fetchDepartures }
 }

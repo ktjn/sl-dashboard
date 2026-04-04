@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { StationConfig, TransportMode } from '../types'
 import type { SiteDeparture } from '../hooks/useDepartures'
 import { TRANSPORT_TYPES, MODES } from '../constants'
@@ -60,6 +61,8 @@ export default function StationCard({
   onAddDirectionTag,
   onRemoveDirectionTag,
 }: StationCardProps) {
+  const searchWrapRef = useRef<HTMLDivElement>(null)
+
   const availableModes = availableDepartures.some(d => d.originSiteId === station.siteId)
     ? MODES.filter(m => availableDepartures.some(d =>
         d.originSiteId === station.siteId && d.departure.line.transport_mode === m
@@ -68,6 +71,14 @@ export default function StationCard({
 
   const tags = getDirectionTags(station.direction)
   const options = getDestinationOptions(station, availableDepartures, directionQuery)
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // If the new focus target is inside the search wrap, don't close
+    if (searchWrapRef.current?.contains(e.relatedTarget as Node)) {
+      return
+    }
+    onDirectionDropdownClose()
+  }
 
   return (
     <div
@@ -121,7 +132,7 @@ export default function StationCard({
                   >×</button>
                 </span>
               ))}
-              <div className="configurator-direction-search-wrap">
+              <div className="configurator-direction-search-wrap" ref={searchWrapRef} onBlur={handleBlur}>
                 <input
                   className="configurator-direction-search"
                   placeholder={availableDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
@@ -132,7 +143,6 @@ export default function StationCard({
                     onDirectionDropdownOpen()
                   }}
                   onFocus={onDirectionDropdownOpen}
-                  onBlur={() => setTimeout(onDirectionDropdownClose, 150)}
                 />
                 {directionDropdownOpen && (
                   <div className="configurator-direction-dropdown">
@@ -143,7 +153,7 @@ export default function StationCard({
                         <button
                           key={dest}
                           className="configurator-result-item"
-                          onMouseDown={() => onAddDirectionTag(dest)}
+                          onClick={() => onAddDirectionTag(dest)}
                         >
                           {dest}
                         </button>

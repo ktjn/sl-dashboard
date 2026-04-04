@@ -1,0 +1,28 @@
+<h2>How do users find stations?</h2>
+<p class="subtitle">Adding a station requires a <code>siteId</code> (e.g. <code>9324</code> for Duvbo). Users won't know these IDs.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Live search via SL API</h3>
+      <p>Type a station name → hits <code>transport.integration.sl.se/v1/sites/?q=duvbo</code> → shows matching stations with their IDs. One-click to add.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Find any station in Stockholm</li><li>No manual ID lookup</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Requires API call during configuration</li><li>Need to handle what modes a site has (not all sites have all modes)</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Manual entry</h3>
+      <p>User types the site ID directly. They find it from the SL API docs or by inspecting the dashboard URL after using option A elsewhere.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Zero extra API calls</li><li>Trivial to build</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Requires users to know their site ID — not beginner-friendly</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
