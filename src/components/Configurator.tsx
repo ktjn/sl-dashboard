@@ -161,36 +161,60 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                     />
                     <span className="configurator-walk-label">min</span>
                   </div>
-                  <div className="configurator-card-row">
-                    <span className="configurator-direction-label">Riktning</span>
-                    <select
-                      className="configurator-select"
-                      value={directionToDisplay(station.direction)}
-                      onChange={e => {
-                        const newDir = displayToDirection(e.target.value, station.direction)
-                        updateStation(index, { direction: newDir })
-                      }}
-                    >
-                      <option value="stockholm">→ Stockholm</option>
-                      <option value="all">Alla riktningar</option>
-                      <option value="custom">Anpassad…</option>
-                    </select>
+                  <div className="configurator-direction">
+                    <label className="configurator-direction-toggle">
+                      <input
+                        type="checkbox"
+                        checked={station.direction === 'all'}
+                        onChange={e => updateStation(index, { direction: e.target.checked ? 'all' : '' })}
+                      />
+                      Alla riktningar
+                    </label>
+                    {station.direction !== 'all' && (
+                      <div className="configurator-direction-tags">
+                        {getDirectionTags(station.direction).map(tag => (
+                          <span key={tag} className="configurator-tag">
+                            {tag}
+                            <button
+                              className="configurator-tag-remove"
+                              onClick={() => removeDirectionTag(index, tag)}
+                            >×</button>
+                          </span>
+                        ))}
+                        <div className="configurator-direction-search-wrap">
+                          <input
+                            className="configurator-direction-search"
+                            placeholder={allDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
+                            disabled={allDepartures.length === 0}
+                            value={directionQueries[index] ?? ''}
+                            onChange={e => {
+                              setDirectionQueries(prev => prev.map((q, i) => (i === index ? e.target.value : q)))
+                              setDirectionDropdownOpen(index)
+                            }}
+                            onFocus={() => setDirectionDropdownOpen(index)}
+                            onBlur={() => setTimeout(() => setDirectionDropdownOpen(null), 150)}
+                          />
+                          {directionDropdownOpen === index && (
+                            <div className="configurator-direction-dropdown">
+                              {getDestinationOptions(station, directionQueries[index] ?? '').length === 0 ? (
+                                <div className="configurator-result-item configurator-result-status">Inga träffar</div>
+                              ) : (
+                                getDestinationOptions(station, directionQueries[index] ?? '').map(dest => (
+                                  <button
+                                    key={dest}
+                                    className="configurator-result-item"
+                                    onMouseDown={() => addDirectionTag(index, dest)}
+                                  >
+                                    {dest}
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  {directionToDisplay(station.direction) === 'custom' && (
-                    <input
-                      className="configurator-keywords-input"
-                      placeholder="t.ex. farsta sickla"
-                      value={station.direction.split('|').join(' ')}
-                      onChange={e => {
-                        const keywords = e.target.value
-                          .split(/[\s,]+/)
-                          .map(k => k.trim().toLowerCase())
-                          .filter(Boolean)
-                          .join('|')
-                        updateStation(index, { direction: keywords || 'stockholm' })
-                      }}
-                    />
-                  )}
                 </div>
                 <button className="configurator-remove" onClick={() => removeStation(index)}>✕</button>
               </div>
