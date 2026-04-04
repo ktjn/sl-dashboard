@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
 import type { StationConfig, TransportMode, AppConfig } from '../types'
@@ -29,9 +29,15 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     config.stations.map(() => '')
   )
   const [directionDropdownOpen, setDirectionDropdownOpen] = useState<number | null>(null)
-  const [localDepartures, setLocalDepartures] = useState<SiteDeparture[]>(allDepartures)
+  const [extraDepartures, setExtraDepartures] = useState<SiteDeparture[]>([])
   const fetchedSiteIds = useRef(new Set(allDepartures.map(d => d.originSiteId)))
   const searchRef = useRef<HTMLDivElement>(null)
+
+  // Always merge fresh prop data with any extra departures fetched for new stations
+  const availableDepartures = useMemo(
+    () => [...allDepartures, ...extraDepartures],
+    [allDepartures, extraDepartures]
+  )
 
   const fetchDeparturesForSite = useCallback(async (siteId: number) => {
     if (fetchedSiteIds.current.has(siteId)) return
@@ -43,7 +49,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       const newDeps: SiteDeparture[] = (data.departures ?? []).map(
         (d: SiteDeparture['departure']) => ({ departure: d, originSiteId: siteId })
       )
-      setLocalDepartures(prev => [...prev, ...newDeps])
+      setExtraDepartures(prev => [...prev, ...newDeps])
     } catch {
       // no destinations available for this site
     }
@@ -130,7 +136,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   }
 
   function getDestinationOptions(station: StationConfig, query: string): string[] {
-    const allDestinations = localDepartures
+    const allDestinations = availableDepartures
       .filter(({ departure: d, originSiteId }) =>
         originSiteId === station.siteId && d.line.transport_mode === station.mode
       )
@@ -212,8 +218,8 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                         <div className="configurator-direction-search-wrap">
                           <input
                             className="configurator-direction-search"
-                            placeholder={localDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
-                            disabled={localDepartures.length === 0}
+                            placeholder={availableDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
+                            disabled={availableDepartures.length === 0}
                             value={directionQueries[index] ?? ''}
                             onChange={e => {
                               setDirectionQueries(prev => prev.map((q, i) => (i === index ? e.target.value : q)))
