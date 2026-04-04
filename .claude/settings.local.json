@@ -33,7 +33,11 @@
       "Bash(pnpm run:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(bash:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d\\), 'results'\\); [print\\(r['id'], r['name']\\) for r in d[:10]]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d\\), 'results'\\); [print\\(r['id'], r['name']\\) for r in d[:5]]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('id'\\), d.get\\('name'\\)\\)\")"
     ]
   }
 }
