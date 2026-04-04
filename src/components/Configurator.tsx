@@ -18,12 +18,16 @@ const MODE_LABELS: Record<TransportMode, string> = {
 
 const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
 
-export default function Configurator({ config, allDepartures: _allDepartures, onClose }: ConfiguratorProps) {
+export default function Configurator({ config, allDepartures, onClose }: ConfiguratorProps) {
   const [stations, setStations] = useState<StationConfig[]>(config.stations)
   const [query, setQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
+  const [directionQueries, setDirectionQueries] = useState<string[]>(() =>
+    config.stations.map(() => '')
+  )
+  const [directionDropdownOpen, setDirectionDropdownOpen] = useState<number | null>(null)
   const searchRef = useRef<HTMLDivElement>(null)
 
   const { results, loading: searchLoading, error: searchError } = useStationSearch(query)
@@ -36,6 +40,7 @@ export default function Configurator({ config, allDepartures: _allDepartures, on
 
   function removeStation(index: number) {
     setStations(prev => prev.filter((_, i) => i !== index))
+    setDirectionQueries(prev => prev.filter((_, i) => i !== index))
   }
 
   function addStation(id: number, name: string) {
@@ -44,9 +49,10 @@ export default function Configurator({ config, allDepartures: _allDepartures, on
       name,
       mode: 'METRO',
       walkTime: 10,
-      direction: 'stockholm',
+      direction: 'all',
     }
     setStations(prev => [...prev, newStation])
+    setDirectionQueries(prev => [...prev, ''])
     setQuery('')
     setShowResults(false)
   }
@@ -76,18 +82,35 @@ export default function Configurator({ config, allDepartures: _allDepartures, on
     window.location.href = generatedUrl
   }
 
-  function directionToDisplay(direction: string): string {
-    if (direction === 'stockholm') return 'stockholm'
-    if (direction === 'all') return 'all'
-    return 'custom'
+  function getDirectionTags(direction: string): string[] {
+    if (direction === 'all') return []
+    return direction.split('|').filter(Boolean)
   }
 
-  function displayToDirection(value: string, current: string): string {
-    if (value === 'stockholm') return 'stockholm'
-    if (value === 'all') return 'all'
-    // 'custom' — keep existing custom keywords if already custom, else empty
-    if (directionToDisplay(current) === 'custom') return current
-    return ''
+  function setDirectionTags(index: number, tags: string[]) {
+    updateStation(index, { direction: tags.length === 0 ? 'all' : tags.join('|') })
+  }
+
+  function addDirectionTag(index: number, tag: string) {
+    const current = getDirectionTags(stations[index].direction)
+    if (current.includes(tag)) return
+    setDirectionTags(index, [...current, tag])
+    setDirectionQueries(prev => prev.map((q, i) => (i === index ? '' : q)))
+    setDirectionDropdownOpen(null)
+  }
+
+  function removeDirectionTag(index: number, tag: string) {
+    setDirectionTags(index, getDirectionTags(stations[index].direction).filter(t => t !== tag))
+  }
+
+  function getDestinationOptions(station: StationConfig, query: string): string[] {
+    const allDestinations = allDepartures
+      .filter(d => d.line.transport_mode === station.mode)
+      .map(d => d.destination)
+    const unique = [...new Set(allDestinations)]
+    const q = query.trim().toLowerCase()
+    if (!q) return unique
+    return unique.filter(dest => dest.toLowerCase().includes(q))
   }
 
   return (
