@@ -44,10 +44,10 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
         return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
       })
 
-      // All departures for configured siteId+mode, before direction filter
+      // All departures for configured sites (all modes), before direction filter
       const allMatched = withOrigin
-        .filter(({ departure: d, originSiteId }) =>
-          stations.some(s => s.siteId === originSiteId && s.mode === d.line.transport_mode)
+        .filter(({ originSiteId }) =>
+          stations.some(s => s.siteId === originSiteId)
         )
         .map(({ departure }) => departure)
 

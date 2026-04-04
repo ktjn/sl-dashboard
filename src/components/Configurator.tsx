@@ -151,7 +151,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                     <select
                       className="configurator-select"
                       value={station.mode}
-                      onChange={e => updateStation(index, { mode: e.target.value as TransportMode })}
+                      onChange={e => updateStation(index, { mode: e.target.value as TransportMode, direction: 'all' })}
                     >
                       {MODES.map(m => (
                         <option key={m} value={m}>{MODE_LABELS[m]}</option>
