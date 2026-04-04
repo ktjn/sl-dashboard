@@ -38,12 +38,16 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
       )
 
       const filtered = allData
-        .flatMap(data => data.departures)
-        .filter(d => {
-          const station = stations.find(s => s.mode === d.line.transport_mode)
+        .flatMap((data, index) => {
+          const siteId = uniqueSiteIds[index]
+          return data.departures.map(d => ({ departure: d, originSiteId: siteId }))
+        })
+        .filter(({ departure: d, originSiteId }) => {
+          const station = stations.find(s => s.siteId === originSiteId && s.mode === d.line.transport_mode)
           if (!station) return false
           return matchesDirection(d, station.direction)
         })
+        .map(({ departure }) => departure)
 
       setDepartures(filtered)
       setLastUpdate(new Date())
@@ -55,7 +59,7 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
       setLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(uniqueSiteIds), JSON.stringify(stations.map(s => s.direction))])
+  }, [JSON.stringify(stations)])
 
   useEffect(() => {
     fetchDepartures()
