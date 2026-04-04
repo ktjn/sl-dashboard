@@ -17,9 +17,8 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  const { stations, directionFilter } = config
+  const { stations } = config
   const uniqueSiteIds = [...new Set(stations.map(s => s.siteId))]
-  const configuredModes = new Set(stations.map(s => s.mode))
 
   const fetchDepartures = useCallback(async () => {
     try {
@@ -40,8 +39,11 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
 
       const filtered = allData
         .flatMap(data => data.departures)
-        .filter(d => configuredModes.has(d.line.transport_mode))
-        .filter(d => matchesDirection(d, directionFilter))
+        .filter(d => {
+          const station = stations.find(s => s.mode === d.line.transport_mode)
+          if (!station) return false
+          return matchesDirection(d, station.direction)
+        })
 
       setDepartures(filtered)
       setLastUpdate(new Date())
@@ -53,7 +55,7 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
       setLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(uniqueSiteIds), JSON.stringify([...configuredModes]), JSON.stringify(directionFilter)])
+  }, [JSON.stringify(uniqueSiteIds), JSON.stringify(stations.map(s => s.direction))])
 
   useEffect(() => {
     fetchDepartures()

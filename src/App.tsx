@@ -19,7 +19,7 @@ function formatCurrentTime(date: Date): string {
 
 export default function App() {
   const config = useMemo(() => parseConfigFromQuery(), [])
-  const { stations, directionFilter } = config
+  const { stations } = config
 
   const { departures, loading, error, lastUpdate, refetch } = useDepartures(config)
   const currentTime = useClock()
@@ -30,10 +30,14 @@ export default function App() {
   }, [stations])
 
   const subtitle = useMemo(() => {
-    if (directionFilter === 'all') return 'Alla avgångar'
-    if (directionFilter === 'stockholm') return 'Avgångar mot Stockholm C'
-    return `Avgångar mot ${directionFilter.join(', ')}`
-  }, [directionFilter])
+    const directions = [...new Set(stations.map(s => s.direction))]
+    if (directions.length === 1) {
+      if (directions[0] === 'all') return 'Alla avgångar'
+      if (directions[0] === 'stockholm') return 'Avgångar mot Stockholm C'
+      return `Avgångar mot ${directions[0].split('|').join(', ')}`
+    }
+    return 'Avgångstavla'
+  }, [stations])
 
   return (
     <div className="app">
