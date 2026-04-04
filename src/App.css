@@ -709,6 +709,25 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.configurator-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.configurator-clear-all {
+  font-size: 0.75rem;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.configurator-clear-all:hover {
+  color: #e53e3e;
+}
+
 .configurator-empty {
   color: #8b9dc3;
   font-size: 0.9rem;

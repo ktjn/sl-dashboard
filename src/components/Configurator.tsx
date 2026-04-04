@@ -152,7 +152,17 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
         <div className="configurator-body">
           {/* Station list */}
           <div className="configurator-section">
-            <div className="configurator-label">Stationer</div>
+            <div className="configurator-section-header">
+              <div className="configurator-label">Stationer</div>
+              {stations.length > 0 && (
+                <button
+                  className="configurator-clear-all"
+                  onClick={() => { setStations([]); setDirectionQueries([]) }}
+                >
+                  Rensa alla
+                </button>
+              )}
+            </div>
             {stations.length === 0 && (
               <p className="configurator-empty">Inga stationer. Sök nedan för att lägga till.</p>
             )}
