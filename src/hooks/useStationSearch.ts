@@ -27,11 +27,11 @@ export function useStationSearch(query: string): UseStationSearchResult {
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(
-          `https://transport.integration.sl.se/v1/sites/?q=${encodeURIComponent(query.trim())}`
+          `https://transport.integration.sl.se/v1/sites?q=${encodeURIComponent(query.trim())}`
         )
         if (!response.ok) throw new Error(`API error: ${response.status}`)
         const data = await response.json()
-        const sites: SiteSearchResult[] = (data.sites ?? []).map((s: { id: number; name: string }) => ({
+        const sites: SiteSearchResult[] = (Array.isArray(data) ? data : []).map((s: { id: number; name: string }) => ({
           id: s.id,
           name: s.name,
         }))
