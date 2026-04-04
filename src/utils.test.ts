@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { parseConfigFromQuery, buildQueryString } from './utils'
 import { DEFAULT_STATIONS } from './constants'
 
@@ -9,6 +9,10 @@ function setLocation(search: string) {
     configurable: true,
   })
 }
+
+beforeEach(() => {
+  setLocation('')
+})
 
 // ─── Suite 1: parseConfigFromQuery — valid inputs ────────────────────────────
 
@@ -81,5 +85,33 @@ describe('parseConfigFromQuery — silent drops and fallbacks', () => {
     setLocation('?stations=abc:Duvbo:METRO:10:all')
     const { stations } = parseConfigFromQuery()
     expect(stations).toEqual(DEFAULT_STATIONS)
+  })
+})
+
+// ─── Suite 3: buildQueryString — encoding ────────────────────────────────────
+
+describe('buildQueryString — encoding', () => {
+  it('round-trips a station name containing a colon', () => {
+    const original = [{ siteId: 9324, name: 'Foo:Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
+    const url = buildQueryString(original)
+    setLocation('?' + url.split('?')[1])
+    const { stations } = parseConfigFromQuery()
+    expect(stations[0].name).toBe('Foo:Bar')
+  })
+
+  it('round-trips a station name containing a comma', () => {
+    const original = [{ siteId: 9324, name: 'Foo,Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
+    const url = buildQueryString(original)
+    setLocation('?' + url.split('?')[1])
+    const { stations } = parseConfigFromQuery()
+    expect(stations[0].name).toBe('Foo,Bar')
+  })
+
+  it('round-trips a direction containing a pipe (normal multi-keyword)', () => {
+    const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'stockholm|centralen' }]
+    const url = buildQueryString(original)
+    setLocation('?' + url.split('?')[1])
+    const { stations } = parseConfigFromQuery()
+    expect(stations[0].direction).toBe('stockholm|centralen')
   })
 })
