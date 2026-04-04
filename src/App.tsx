@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './App.css'
 import { useDepartures } from './hooks/useDepartures'
 import { useClock } from './hooks/useClock'
@@ -23,6 +23,10 @@ export default function App() {
     const uniqueNames = [...new Set(stations.map(s => s.name))]
     return uniqueNames.join(' / ')
   }, [stations])
+
+  useEffect(() => {
+    document.title = `SL Avgångar – ${headerTitle}`
+  }, [headerTitle])
 
   const subtitle = useMemo(() => {
     const directions = [...new Set(stations.map(s => s.direction))]
