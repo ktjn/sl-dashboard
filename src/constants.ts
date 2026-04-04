@@ -2,7 +2,7 @@ import type { TransportMode, TransportTypeConfig, StationConfig } from './types'
 
 export const TRANSPORT_TYPES: Record<TransportMode, TransportTypeConfig> = {
   METRO: { name: 'Tunnelbana', icon: 'T', color: '#ffffff', bgColor: '#000000' },
-  TRAM: { name: 'Spårvagn', icon: 'L', color: '#ffffff', bgColor: '#7D4E24' },
+  TRAM: { name: 'Tvärbanan', icon: 'L', color: '#ffffff', bgColor: '#7D4E24' },
   TRAIN: { name: 'Pendeltåg', icon: 'J', color: '#ffffff', bgColor: '#EC619F' },
   BUS: { name: 'Buss', icon: 'B', color: '#ffffff', bgColor: '#1E88E5' }
 }
