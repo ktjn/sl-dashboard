@@ -69,6 +69,12 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       next.splice(index, 0, moved)
       return next
     })
+    setDirectionQueries(prev => {
+      const next = [...prev]
+      const [moved] = next.splice(dragIndex, 1)
+      next.splice(index, 0, moved)
+      return next
+    })
     setDragIndex(null)
   }
 
@@ -194,23 +200,26 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                             onFocus={() => setDirectionDropdownOpen(index)}
                             onBlur={() => setTimeout(() => setDirectionDropdownOpen(null), 150)}
                           />
-                          {directionDropdownOpen === index && (
-                            <div className="configurator-direction-dropdown">
-                              {getDestinationOptions(station, directionQueries[index] ?? '').length === 0 ? (
-                                <div className="configurator-result-item configurator-result-status">Inga träffar</div>
-                              ) : (
-                                getDestinationOptions(station, directionQueries[index] ?? '').map(dest => (
-                                  <button
-                                    key={dest}
-                                    className="configurator-result-item"
-                                    onMouseDown={() => addDirectionTag(index, dest)}
-                                  >
-                                    {dest}
-                                  </button>
-                                ))
-                              )}
-                            </div>
-                          )}
+                          {directionDropdownOpen === index && (() => {
+                            const options = getDestinationOptions(station, directionQueries[index] ?? '')
+                            return (
+                              <div className="configurator-direction-dropdown">
+                                {options.length === 0 ? (
+                                  <div className="configurator-result-item configurator-result-status">Inga träffar</div>
+                                ) : (
+                                  options.map(dest => (
+                                    <button
+                                      key={dest}
+                                      className="configurator-result-item"
+                                      onMouseDown={() => addDirectionTag(index, dest)}
+                                    >
+                                      {dest}
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            )
+                          })()}
                         </div>
                       </div>
                     )}

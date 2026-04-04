@@ -9,7 +9,7 @@ export function isTowardsStockholm(departure: Departure): boolean {
 
 // direction: 'stockholm' | 'all' | 'keyword1|keyword2'
 export function matchesDirection(departure: Departure, direction: string): boolean {
-  if (direction === 'all') return true
+  if (!direction || direction === 'all') return true
   if (direction === 'stockholm') return isTowardsStockholm(departure)
   const keywords = direction.split('|').filter(Boolean)
   const dest = departure.destination.toLowerCase()
