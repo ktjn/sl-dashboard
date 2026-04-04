@@ -90,16 +90,20 @@ export default function App() {
 
         {!loading && departures.length > 0 && (
           <>
-            {stations.map((station, index) => (
-              <TransportSection
-                key={`${station.siteId}-${station.mode}-${index}`}
-                title={`${TRANSPORT_TYPES[station.mode].name} från ${station.name}`}
-                departures={departures}
-                transportMode={station.mode}
-                currentTime={currentTime}
-                walkingTime={station.walkTime}
-              />
-            ))}
+            {stations.map((station, index) => {
+              const stationDepartures = departures
+                .filter(d => d.originSiteId === station.siteId && d.departure.line.transport_mode === station.mode)
+                .map(d => d.departure)
+              return (
+                <TransportSection
+                  key={`${station.siteId}-${station.mode}-${index}`}
+                  title={`${TRANSPORT_TYPES[station.mode].name} från ${station.name}`}
+                  departures={stationDepartures}
+                  currentTime={currentTime}
+                  walkingTime={station.walkTime}
+                />
+              )
+            })}
           </>
         )}
       </main>

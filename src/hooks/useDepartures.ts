@@ -9,7 +9,7 @@ export interface SiteDeparture {
 }
 
 interface UseDeparturesResult {
-  departures: Departure[]
+  departures: SiteDeparture[]
   allDepartures: SiteDeparture[]
   loading: boolean
   error: string | null
@@ -18,7 +18,7 @@ interface UseDeparturesResult {
 }
 
 export function useDepartures(config: AppConfig): UseDeparturesResult {
-  const [departures, setDepartures] = useState<Departure[]>([])
+  const [departures, setDepartures] = useState<SiteDeparture[]>([])
   const [allDepartures, setAllDepartures] = useState<SiteDeparture[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -56,7 +56,6 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
           if (!station) return false
           return matchesDirection(d, station.direction)
         })
-        .map(({ departure }) => departure)
 
       setDepartures(filtered)
       setAllDepartures(withOrigin)
