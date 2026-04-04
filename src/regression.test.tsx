@@ -32,7 +32,7 @@ describe('App Regression Tests', () => {
 
   it('updates configuration when popstate event is fired', async () => {
     // 1. Initial render with default stations
-    const { rerender } = render(<App />)
+    render(<App />)
     
     // 2. Simulate URL change (e.g., from Configurator's handleApply)
     const newStations = [
