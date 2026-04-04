@@ -48,3 +48,38 @@ describe('parseConfigFromQuery — valid inputs', () => {
     expect(stations[0].name).toBe('My Station')
   })
 })
+
+// ─── Suite 2: parseConfigFromQuery — silent drops and fallbacks ──────────────
+
+describe('parseConfigFromQuery — silent drops and fallbacks', () => {
+  it('returns DEFAULT_STATIONS when no ?stations= param', () => {
+    setLocation('?')
+    const { stations } = parseConfigFromQuery()
+    expect(stations).toEqual(DEFAULT_STATIONS)
+  })
+
+  it('returns DEFAULT_STATIONS when all stations fail validation (silent fallback, not empty array)', () => {
+    setLocation('?stations=abc:Duvbo:METRO:10:all')
+    const { stations } = parseConfigFromQuery()
+    expect(stations).toEqual(DEFAULT_STATIONS)
+  })
+
+  it('silently drops station with unknown mode, keeps valid ones', () => {
+    setLocation('?stations=9324:Duvbo:METRO:10:all,9325:X:FERRY:10:all')
+    const { stations } = parseConfigFromQuery()
+    expect(stations).toHaveLength(1)
+    expect(stations[0].siteId).toBe(9324)
+  })
+
+  it('silently drops station with NaN walkTime', () => {
+    setLocation('?stations=9324:Duvbo:METRO:notanumber:all')
+    const { stations } = parseConfigFromQuery()
+    expect(stations).toEqual(DEFAULT_STATIONS)
+  })
+
+  it('silently drops station with NaN siteId', () => {
+    setLocation('?stations=abc:Duvbo:METRO:10:all')
+    const { stations } = parseConfigFromQuery()
+    expect(stations).toEqual(DEFAULT_STATIONS)
+  })
+})
