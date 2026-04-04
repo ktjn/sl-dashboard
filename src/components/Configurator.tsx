@@ -156,6 +156,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
               <div className="configurator-label">Stationer</div>
               {stations.length > 0 && (
                 <button
+                  type="button"
                   className="configurator-clear-all"
                   onClick={() => { setStations([]); setDirectionQueries([]) }}
                 >
