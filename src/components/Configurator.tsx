@@ -181,7 +181,12 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                       value={station.mode}
                       onChange={e => updateStation(index, { mode: e.target.value as TransportMode, direction: 'all' })}
                     >
-                      {MODES.map(m => (
+                      {(availableDepartures.some(d => d.originSiteId === station.siteId)
+                        ? MODES.filter(m => availableDepartures.some(d =>
+                            d.originSiteId === station.siteId && d.departure.line.transport_mode === m
+                          ))
+                        : MODES
+                      ).map(m => (
                         <option key={m} value={m}>{MODE_LABELS[m]}</option>
                       ))}
                     </select>
