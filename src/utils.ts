@@ -7,12 +7,14 @@ export function isTowardsStockholm(departure: Departure): boolean {
   return STOCKHOLM_DIRECTIONS.some(d => dest.includes(d) || dir.includes(d))
 }
 
-export function matchesDirection(departure: Departure, filter: AppConfig['directionFilter']): boolean {
-  if (filter === 'all') return true
-  if (filter === 'stockholm') return isTowardsStockholm(departure)
+// direction: 'stockholm' | 'all' | 'keyword1|keyword2'
+export function matchesDirection(departure: Departure, direction: string): boolean {
+  if (direction === 'all') return true
+  if (direction === 'stockholm') return isTowardsStockholm(departure)
+  const keywords = direction.split('|').filter(Boolean)
   const dest = departure.destination.toLowerCase()
   const dir = departure.direction?.toLowerCase() || ''
-  return filter.some(keyword => {
+  return keywords.some(keyword => {
     if (keyword.startsWith('=')) {
       const exact = keyword.slice(1)
       return dest === exact || dir === exact
@@ -39,13 +41,12 @@ export function getLineColor(lineId: number, transportMode: TransportMode): stri
 }
 
 // Parse query parameters to get station configuration.
-// Format: ?stations=siteId:name:mode:walkTime,...
-// Direction filter: ?direction=stockholm (default), ?direction=all, or ?direction=farsta,sickla
-// Use = prefix for exact match: ?direction==farsta matches only "Farsta", not "Farsta strand"
+// New format: ?stations=siteId:name:mode:walkTime:direction,...
+// Legacy fallback: ?direction=stockholm applies as default direction for stations without a 5th field
 export function parseConfigFromQuery(): AppConfig {
   const params = new URLSearchParams(window.location.search)
   const stationsParam = params.get('stations')
-  const directionParam = params.get('direction')
+  const legacyDirection = params.get('direction')?.toLowerCase() ?? 'stockholm'
 
   let stations: StationConfig[] = DEFAULT_STATIONS
   if (stationsParam) {
@@ -57,22 +58,23 @@ export function parseConfigFromQuery(): AppConfig {
         const name = decodeURIComponent(parts[1])
         const mode = parts[2].toUpperCase() as TransportMode
         const walkTime = parseInt(parts[3], 10)
+        const direction = parts[4] ?? legacyDirection
         if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
-          parsed.push({ siteId, name, mode, walkTime })
+          parsed.push({ siteId, name, mode, walkTime, direction })
         }
       }
     }
     if (parsed.length > 0) stations = parsed
   }
 
-  let directionFilter: AppConfig['directionFilter'] = 'stockholm'
-  if (directionParam) {
-    if (directionParam.toLowerCase() === 'all') {
-      directionFilter = 'all'
-    } else if (directionParam.toLowerCase() !== 'stockholm') {
-      directionFilter = directionParam.toLowerCase().split(',').map(s => s.trim())
-    }
-  }
+  return { stations }
+}
 
-  return { stations, directionFilter }
+// Build a full URL from a station list.
+// Format: origin + pathname + ?stations=siteId:name:mode:walkTime:direction,...
+export function buildQueryString(stations: StationConfig[]): string {
+  const parts = stations.map(s =>
+    [s.siteId, encodeURIComponent(s.name), s.mode, s.walkTime, s.direction].join(':')
+  )
+  return `${window.location.origin}${window.location.pathname}?stations=${parts.join(',')}`
 }

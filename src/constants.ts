@@ -50,7 +50,7 @@ export const DEPARTURE_FETCH_INTERVAL_MS = 30_000
 export const CLOCK_TICK_INTERVAL_MS = 1_000
 
 export const DEFAULT_STATIONS: StationConfig[] = [
-  { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10 },
-  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAIN', walkTime: 15 },
-  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAM', walkTime: 13 },
+  { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10, direction: 'stockholm' },
+  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAIN', walkTime: 15, direction: 'stockholm' },
+  { siteId: 9325, name: 'Sundbyberg', mode: 'TRAM', walkTime: 13, direction: 'stockholm' },
 ]
