@@ -43,19 +43,17 @@ export function parseConfigFromQuery(): AppConfig {
   let stations: StationConfig[] = DEFAULT_STATIONS
   if (stationsParam) {
     const parsed: StationConfig[] = []
-    // Parse format: siteId:name:mode:walkTime[:direction],...
-    // Since name can contain encoded colons/commas, parse backwards from known fields
-    // Pattern from the end: (anything),? : digits : MODE : name : siteId
-    const entryPattern = /(\d+):(.+?):(METRO|TRAM|TRAIN|BUS):(\d+)(?::([^,]*))?(?:,|$)/g
-    let match
-    while ((match = entryPattern.exec(stationsParam)) !== null) {
-      const siteId = parseInt(match[1], 10)
-      const name = decodeURIComponent(match[2])
-      const mode = match[3].toUpperCase() as TransportMode
-      const walkTime = parseInt(match[4], 10)
-      const direction = match[5] ?? legacyDirection
-      if (!isNaN(siteId) && name && !isNaN(walkTime)) {
-        parsed.push({ siteId, name, mode, walkTime, direction })
+    for (const entry of stationsParam.split(',')) {
+      const parts = entry.split(':')
+      if (parts.length >= 4) {
+        const siteId = parseInt(parts[0], 10)
+        const name = decodeURIComponent(parts[1])
+        const mode = parts[2].toUpperCase() as TransportMode
+        const walkTime = parseInt(parts[3], 10)
+        const direction = parts[4] ?? legacyDirection
+        if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
+          parsed.push({ siteId, name, mode, walkTime, direction })
+        }
       }
     }
     if (parsed.length > 0) stations = parsed
