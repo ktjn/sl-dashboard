@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import './App.css'
 import { useDepartures } from './hooks/useDepartures'
 import { useClock } from './hooks/useClock'
 import { parseConfigFromQuery } from './utils'
 import TransportSection from './components/TransportSection'
+import Configurator from './components/Configurator'
 import type { TransportMode } from './types'
 
 const SECTION_NAMES: Record<TransportMode, string> = {
@@ -23,6 +24,7 @@ export default function App() {
 
   const { departures, loading, error, lastUpdate, refetch } = useDepartures(config)
   const currentTime = useClock()
+  const [showConfigurator, setShowConfigurator] = useState(false)
 
   const headerTitle = useMemo(() => {
     const uniqueNames = [...new Set(stations.map(s => s.name))]
@@ -48,15 +50,26 @@ export default function App() {
             <h1>{headerTitle}</h1>
             <p className="subtitle">{subtitle}</p>
           </div>
-          <div className="clock">
-            <div className="time">{formatCurrentTime(currentTime)}</div>
-            <div className="date">
-              {currentTime.toLocaleDateString('sv-SE', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
-              })}
+          <div className="header-right">
+            <div className="clock">
+              <div className="time">{formatCurrentTime(currentTime)}</div>
+              <div className="date">
+                {currentTime.toLocaleDateString('sv-SE', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long'
+                })}
+              </div>
             </div>
+            {!showConfigurator && (
+              <button
+                className="settings-button"
+                onClick={() => setShowConfigurator(true)}
+                title="Konfigurera"
+              >
+                ⚙
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -107,6 +120,10 @@ export default function App() {
           Realtid från SL
         </span>
       </footer>
+
+      {showConfigurator && (
+        <Configurator config={config} onClose={() => setShowConfigurator(false)} />
+      )}
     </div>
   )
 }
