@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useStationSearch } from '../hooks/useStationSearch'
 import { buildQueryString } from '../utils'
 import type { StationConfig, TransportMode, AppConfig } from '../types'
@@ -54,6 +54,23 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       // no destinations available for this site
     }
   }, [])
+
+  // When departure data loads for a site, auto-correct any station whose mode is not available there
+  useEffect(() => {
+    setStations(prev => prev.map(station => {
+      const siteHasData = availableDepartures.some(d => d.originSiteId === station.siteId)
+      if (!siteHasData) return station
+      const validModes = MODES.filter(m =>
+        availableDepartures.some(d =>
+          d.originSiteId === station.siteId && d.departure.line.transport_mode === m
+        )
+      )
+      if (validModes.length > 0 && !validModes.includes(station.mode)) {
+        return { ...station, mode: validModes[0], direction: 'all' }
+      }
+      return station
+    }))
+  }, [availableDepartures])
 
   const { results, loading: searchLoading, error: searchError } = useStationSearch(query)
 
