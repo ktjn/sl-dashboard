@@ -1,8 +1,5 @@
 import type { TransportMode, TransportTypeConfig, StationConfig } from './types'
 
-export const DUVBO_SITE_ID = 9324 // Duvbo (metro)
-export const SUNDBYBERG_SITE_ID = 9325 // Sundbyberg (train, tram)
-
 export const TRANSPORT_TYPES: Record<TransportMode, TransportTypeConfig> = {
   METRO: { name: 'Tunnelbana', icon: 'T', color: '#ffffff', bgColor: '#000000' },
   TRAM: { name: 'Spårvagn', icon: 'L', color: '#ffffff', bgColor: '#7D4E24' },
@@ -26,13 +23,6 @@ export const LINE_COLORS: Record<number, string> = {
   45: '#EC619F',
   46: '#EC619F',
   48: '#EC619F',
-}
-
-export const WALKING_TIMES: Record<TransportMode, number> = {
-  METRO: 10,
-  TRAM: 13,
-  TRAIN: 15,
-  BUS: 10,
 }
 
 export const STOCKHOLM_DIRECTIONS = [
