@@ -1,6 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { parseConfigFromQuery, buildQueryString } from './utils'
+import { parseConfigFromQuery, buildQueryString, matchesDirection } from './utils'
 import { DEFAULT_STATIONS } from './constants'
+import type { Departure } from './types'
+
+function makeDeparture(destination: string): Departure {
+  return {
+    destination,
+    display: '5 min',
+    scheduled: new Date().toISOString(),
+    line: { id: 1, designation: '1', transport_mode: 'BUS' },
+  }
+}
 
 function setLocation(search: string) {
   Object.defineProperty(window, 'location', {
@@ -138,5 +148,31 @@ describe('round-trip bugs — FAIL on current code', () => {
     setLocation('?' + url.split('?')[1])
     const { stations } = parseConfigFromQuery()
     expect(stations[0].direction).toBe('foo,bar') // actual: 'foo'
+  })
+})
+
+// ─── Suite 5: matchesDirection — case-insensitive keyword matching ────────────
+
+describe('matchesDirection — case-insensitive keyword matching', () => {
+  it('matches when keyword has uppercase but departure destination is lowercase', () => {
+    // Configurator stores destination names as returned by the API (proper case).
+    // The departure destination from the API may have different casing.
+    expect(matchesDirection(makeDeparture('farsta centrum'), 'Farsta centrum')).toBe(true)
+  })
+
+  it('matches when keyword is all caps', () => {
+    expect(matchesDirection(makeDeparture('alvik'), 'ALVIK')).toBe(true)
+  })
+
+  it('matches pipe-separated keywords case-insensitively', () => {
+    expect(matchesDirection(makeDeparture('alvik'), 'Alvik|Farsta centrum')).toBe(true)
+  })
+
+  it('still rejects departures that do not match any keyword', () => {
+    expect(matchesDirection(makeDeparture('solna'), 'Alvik')).toBe(false)
+  })
+
+  it('direction "all" always matches', () => {
+    expect(matchesDirection(makeDeparture('anywhere'), 'all')).toBe(true)
   })
 })

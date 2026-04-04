@@ -19,7 +19,8 @@ export function matchesDirection(departure: Departure, direction: string): boole
       const exact = keyword.slice(1)
       return dest === exact || dir === exact
     }
-    return dest.includes(keyword) || dir.includes(keyword)
+    const kw = keyword.toLowerCase()
+    return dest.includes(kw) || dir.includes(kw)
   })
 }
 
