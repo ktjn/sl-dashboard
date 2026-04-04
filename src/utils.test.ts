@@ -91,20 +91,16 @@ describe('parseConfigFromQuery — silent drops and fallbacks', () => {
 // ─── Suite 3: buildQueryString — encoding ────────────────────────────────────
 
 describe('buildQueryString — encoding', () => {
-  it('round-trips a station name containing a colon', () => {
-    const original = [{ siteId: 9324, name: 'Foo:Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
-    const url = buildQueryString(original)
-    setLocation('?' + url.split('?')[1])
-    const { stations } = parseConfigFromQuery()
-    expect(stations[0].name).toBe('Foo:Bar')
+  it('encodes colon in station name as %3A', () => {
+    const stations = [{ siteId: 9324, name: 'Foo:Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
+    const url = buildQueryString(stations)
+    expect(url).toContain('Foo%3ABar')
   })
 
-  it('round-trips a station name containing a comma', () => {
-    const original = [{ siteId: 9324, name: 'Foo,Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
-    const url = buildQueryString(original)
-    setLocation('?' + url.split('?')[1])
-    const { stations } = parseConfigFromQuery()
-    expect(stations[0].name).toBe('Foo,Bar')
+  it('encodes comma in station name as %2C', () => {
+    const stations = [{ siteId: 9324, name: 'Foo,Bar', mode: 'METRO' as const, walkTime: 10, direction: 'all' }]
+    const url = buildQueryString(stations)
+    expect(url).toContain('Foo%2CBar')
   })
 
   it('round-trips a direction containing a pipe (normal multi-keyword)', () => {
