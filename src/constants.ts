@@ -8,6 +8,13 @@ export const TRANSPORT_TYPES: Record<TransportMode, TransportTypeConfig> = {
 }
 
 export const LINE_COLORS: Record<number, string> = {
+  // Metro green line
+  17: '#009B3A',
+  18: '#009B3A',
+  19: '#009B3A',
+  // Metro red line
+  13: '#E8331B',
+  14: '#E8331B',
   // Metro blue line
   10: '#0066B3',
   11: '#0066B3',
