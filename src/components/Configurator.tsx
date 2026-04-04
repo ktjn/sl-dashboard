@@ -51,6 +51,11 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     }
   }, [])
 
+  // Fetch data for initial stations if not already in allDepartures
+  useEffect(() => {
+    stations.forEach(s => fetchDeparturesForSite(s.siteId))
+  }, [stations, fetchDeparturesForSite])
+
   // When departure data loads for a site, auto-correct any station whose mode is not available there
   useEffect(() => {
     setStations(prev => prev.map(station => {
