@@ -27,20 +27,41 @@ function getDirectionTags(direction: string): string[] {
   return direction.split('|').filter(Boolean)
 }
 
-function getDestinationOptions(
+function displayTag(tag: string): string {
+  return tag.startsWith('=') ? tag.slice(1) : tag
+}
+
+function getUniqueDirections(
+  station: StationConfig,
+  availableDepartures: SiteDeparture[]
+): string[] {
+  const values = availableDepartures
+    .filter(({ departure: d, originSiteId }) =>
+      originSiteId === station.siteId && d.line.transport_mode === station.mode
+    )
+    .map(({ departure: d }) => d.direction)
+    .filter((d): d is string => Boolean(d))
+  return [...new Set(values)]
+}
+
+function getUniqueDestinations(
   station: StationConfig,
   availableDepartures: SiteDeparture[],
-  query: string
+  excluded: Set<string>
 ): string[] {
-  const allDestinations = availableDepartures
+  const values = availableDepartures
     .filter(({ departure: d, originSiteId }) =>
       originSiteId === station.siteId && d.line.transport_mode === station.mode
     )
     .map(({ departure: d }) => d.destination)
-  const unique = [...new Set(allDestinations)]
+    .filter(dest => !excluded.has(dest))
+  return [...new Set(values)]
+}
+
+function filterByQuery(values: string[], query: string): string[] {
   const q = query.trim().toLowerCase()
-  if (!q) return unique
-  return unique.filter(dest => dest.toLowerCase().includes(q))
+  if (!q) return values
+  return values.filter(v => v.toLowerCase().includes(q))
 }
 
 export default function StationCard({
@@ -70,7 +91,16 @@ export default function StationCard({
     : MODES
 
   const tags = getDirectionTags(station.direction)
-  const options = getDestinationOptions(station, availableDepartures, directionQuery)
+  const rawDirections = getUniqueDirections(station, availableDepartures)
+  const selectedDirections = new Set(tags.map(t => t.startsWith('=') ? t.slice(1) : null).filter(Boolean) as string[])
+  const directionOptions = filterByQuery(
+    rawDirections.filter(d => !selectedDirections.has(d)),
+    directionQuery
+  )
+  const destinationOptions = filterByQuery(
+    getUniqueDestinations(station, availableDepartures, new Set(rawDirections)),
+    directionQuery
+  )
 
   const handleBlur = (e: React.FocusEvent) => {
     // If the new focus target is inside the search wrap, don't close
@@ -125,7 +155,7 @@ export default function StationCard({
             <div className="configurator-direction-tags">
               {tags.map(tag => (
                 <span key={tag} className="configurator-tag">
-                  {tag}
+                  {displayTag(tag)}
                   <button
                     className="configurator-tag-remove"
                     onClick={() => onRemoveDirectionTag(tag)}
@@ -146,18 +176,39 @@ export default function StationCard({
                 />
                 {directionDropdownOpen && (
                   <div className="configurator-direction-dropdown">
-                    {options.length === 0 ? (
+                    {directionOptions.length === 0 && destinationOptions.length === 0 ? (
                       <div className="configurator-result-item configurator-result-status">Inga träffar</div>
                     ) : (
-                      options.map(dest => (
-                        <button
-                          key={dest}
-                          className="configurator-result-item"
-                          onClick={() => onAddDirectionTag(dest)}
-                        >
-                          {dest}
-                        </button>
-                      ))
+                      <>
+                        {directionOptions.length > 0 && (
+                          <div className="configurator-direction-group">
+                            <div className="configurator-direction-group-label">Riktning</div>
+                            {directionOptions.map(dir => (
+                              <button
+                                key={dir}
+                                className="configurator-result-item"
+                                onClick={() => onAddDirectionTag(`=${dir}`)}
+                              >
+                                {dir}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {destinationOptions.length > 0 && (
+                          <div className="configurator-direction-group">
+                            <div className="configurator-direction-group-label">Slutstation</div>
+                            {destinationOptions.map(dest => (
+                              <button
+                                key={dest}
+                                className="configurator-result-item"
+                                onClick={() => onAddDirectionTag(dest)}
+                              >
+                                {dest}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
