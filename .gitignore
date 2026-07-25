@@ -21,4 +21,10 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?.superpowers/
+*.sw?
+.superpowers/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
