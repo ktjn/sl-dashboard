@@ -97,4 +97,34 @@ describe('StationCard direction picker', () => {
     })
     expect(screen.getAllByRole('button', { name: 'Hjulsta' })).toHaveLength(1)
   })
+
+  it('excludes an already-selected direction tag from the Riktning dropdown', () => {
+    renderCard({
+      station: makeStation({ direction: '=Kungsträdgården' }),
+      availableDepartures: [
+        makeDeparture('T-Centralen', 'Kungsträdgården'),
+        makeDeparture('Hjulsta', 'Hjulsta'),
+      ],
+    })
+    expect(screen.queryByRole('button', { name: 'Kungsträdgården' })).toBeNull()
+  })
+
+  it('shows only the Slutstation group when the query only matches a destination value', () => {
+    renderCard({ directionQuery: 'T-Cent' })
+    expect(screen.queryByText('Riktning')).toBeNull()
+    expect(screen.getByText('Slutstation')).toBeDefined()
+  })
+
+  it('a departure with an undefined direction only contributes a destination option', () => {
+    renderCard({
+      availableDepartures: [...defaultDepartures, makeDeparture('SomeDest', undefined)],
+    })
+    expect(screen.getByRole('button', { name: 'SomeDest' })).toBeDefined()
+  })
+
+  it('renders the Riktning group before the Slutstation group', () => {
+    renderCard()
+    const text = document.body.textContent ?? ''
+    expect(text.indexOf('Riktning')).toBeLessThan(text.indexOf('Slutstation'))
+  })
 })

@@ -92,13 +92,14 @@ export default function StationCard({
 
   const tags = getDirectionTags(station.direction)
   const rawDirections = getUniqueDirections(station, availableDepartures)
-  const selectedDirections = new Set(tags.map(t => t.startsWith('=') ? t.slice(1) : null).filter(Boolean) as string[])
+  const selectedDirections = new Set(tags.filter(t => t.startsWith('=')).map(displayTag))
+  const selectedDestinations = new Set(tags.filter(t => !t.startsWith('=')))
   const directionOptions = filterByQuery(
     rawDirections.filter(d => !selectedDirections.has(d)),
     directionQuery
   )
   const destinationOptions = filterByQuery(
-    getUniqueDestinations(station, availableDepartures, new Set(rawDirections)),
+    getUniqueDestinations(station, availableDepartures, new Set([...rawDirections, ...selectedDestinations])),
     directionQuery
   )
 
@@ -165,7 +166,7 @@ export default function StationCard({
               <div className="configurator-direction-search-wrap" ref={searchWrapRef} onBlur={handleBlur}>
                 <input
                   className="configurator-direction-search"
-                  placeholder={availableDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till destination…'}
+                  placeholder={availableDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till riktning eller slutstation…'}
                   disabled={availableDepartures.length === 0}
                   value={directionQuery}
                   onChange={e => {
