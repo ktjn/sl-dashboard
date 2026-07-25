@@ -898,6 +898,18 @@ body {
   z-index: 10;
 }
 
+.configurator-direction-group + .configurator-direction-group {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.configurator-direction-group-label {
+  padding: 0.35rem 0.75rem 0.2rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b9dc3;
+}
+
 .configurator-remove {
   background: transparent;
   border: none;
