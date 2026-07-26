@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -33,6 +33,7 @@
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "typescript": "^6.0.2",
+    "typescript-eslint": "^8.65.0",
     "vite": "^8.0.3",
     "vitest": "^4.1.2"
   }

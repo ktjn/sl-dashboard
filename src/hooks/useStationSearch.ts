@@ -26,7 +26,6 @@ export function useStationSearch(query: string): UseStationSearchResult {
   useEffect(() => {
     if (fetchedRef.current || allSitesCache !== null) return
     fetchedRef.current = true
-    setLoading(true)
     fetch('https://transport.integration.sl.se/v1/sites')
       .then(r => {
         if (!r.ok) throw new Error(`API error: ${r.status}`)

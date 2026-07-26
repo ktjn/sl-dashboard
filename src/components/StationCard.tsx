@@ -5,7 +5,6 @@ import { TRANSPORT_TYPES, MODES } from '../constants'
 
 interface StationCardProps {
   station: StationConfig
-  index: number
   isDragging: boolean
   directionQuery: string
   directionDropdownOpen: boolean
@@ -66,7 +65,6 @@ function filterByQuery(values: string[], query: string): string[] {
 
 export default function StationCard({
   station,
-  index: _index,
   isDragging,
   directionQuery,
   directionDropdownOpen,

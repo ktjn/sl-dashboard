@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, waitFor, screen, fireEvent, cleanup } from '@testing-library/react'
 import Configurator from './Configurator'
 import type { AppConfig } from '../types'
+import type { SiteSearchResult } from '../hooks/useStationSearch'
+import type { SiteDeparture } from '../hooks/useDepartures'
 
 // Mock sub-components
 vi.mock('./StationCard', () => ({
-  default: ({ station, onRemove }: any) => (
+  default: ({ station, onRemove }: { station: { name: string; mode: string }; onRemove: () => void }) => (
     <div data-testid="station-card">
       {station.name} ({station.mode})
       <button onClick={onRemove}>Remove</button>
@@ -15,7 +17,7 @@ vi.mock('./StationCard', () => ({
 
 // Define search mock outside to be controllable
 const mockSearchState = {
-  results: [] as any[],
+  results: [] as SiteSearchResult[],
   loading: false,
   error: null as string | null
 }
@@ -72,6 +74,21 @@ describe('Configurator', () => {
     expect(screen.getByTestId('station-card')).toHaveTextContent(/Initial \(METRO\)/)
 
     // After availableDepartures logic runs in useEffect, it should switch to BUS
+    await waitFor(() => {
+      expect(screen.getByTestId('station-card')).toHaveTextContent(/Initial \(BUS\)/)
+    })
+  })
+
+  it('auto-corrects station mode immediately on mount when departure data is already loaded', async () => {
+    // allDepartures already populated when the Configurator mounts (the common case per App.tsx),
+    // with only BUS available for the initial station's site — mode should correct on first render,
+    // not just after a later fetch-driven reference change.
+    const allDepartures: SiteDeparture[] = [
+      { originSiteId: 9999, departure: { line: { transport_mode: 'BUS' } } as SiteDeparture['departure'] }
+    ]
+
+    render(<Configurator config={config} allDepartures={allDepartures} onClose={vi.fn()} />)
+
     await waitFor(() => {
       expect(screen.getByTestId('station-card')).toHaveTextContent(/Initial \(BUS\)/)
     })
