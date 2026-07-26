@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, waitFor, screen, fireEvent, cleanup } from '@testing-library/react'
 import Configurator from './Configurator'
 import type { AppConfig } from '../types'
+import type { SiteSearchResult } from '../hooks/useStationSearch'
 
 // Mock sub-components
 vi.mock('./StationCard', () => ({
-  default: ({ station, onRemove }: any) => (
+  default: ({ station, onRemove }: { station: { name: string; mode: string }; onRemove: () => void }) => (
     <div data-testid="station-card">
       {station.name} ({station.mode})
       <button onClick={onRemove}>Remove</button>
@@ -15,7 +16,7 @@ vi.mock('./StationCard', () => ({
 
 // Define search mock outside to be controllable
 const mockSearchState = {
-  results: [] as any[],
+  results: [] as SiteSearchResult[],
   loading: false,
   error: null as string | null
 }
