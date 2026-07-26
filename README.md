@@ -35,6 +35,15 @@ pnpm build
 
 # Preview production build
 pnpm preview
+
+# Run unit tests
+pnpm test
+
+# Run end-to-end tests
+pnpm test:e2e
+
+# Lint
+pnpm lint
 ```
 
 ## Deployment
