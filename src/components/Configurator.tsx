@@ -56,8 +56,13 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
     stations.forEach(s => fetchDeparturesForSite(s.siteId))
   }, [stations, fetchDeparturesForSite])
 
-  // When departure data loads for a site, auto-correct any station whose mode is not available there
-  useEffect(() => {
+  // When departure data loads for a site, auto-correct any station whose mode is not available there.
+  // Uses React's "adjust state during render" pattern instead of an effect, since calling setState
+  // synchronously inside useEffect triggers an extra render pass (react-hooks/set-state-in-effect).
+  // Seeded null (not availableDepartures) so the correction also runs on the very first render.
+  const [prevAvailableDepartures, setPrevAvailableDepartures] = useState<SiteDeparture[] | null>(null)
+  if (availableDepartures !== prevAvailableDepartures) {
+    setPrevAvailableDepartures(availableDepartures)
     setStations(prev => {
       let changed = false
       const next = prev.map(station => {
@@ -78,7 +83,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       })
       return changed ? next : prev
     })
-  }, [availableDepartures])
+  }
 
   const { results, loading: searchLoading, error: searchError } = useStationSearch(query)
 
@@ -180,7 +185,6 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
               <StationCard
                 key={`${station.siteId}-${station.mode}-${index}`}
                 station={station}
-                index={index}
                 isDragging={dragIndex === index}
                 directionQuery={station.directionQuery}
                 directionDropdownOpen={directionDropdownOpen === index}

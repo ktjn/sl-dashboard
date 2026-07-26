@@ -31,7 +31,6 @@ function renderCard(overrides: Partial<ComponentProps<typeof StationCard>> = {})
   const onAddDirectionTag = vi.fn()
   const props: ComponentProps<typeof StationCard> = {
     station: makeStation(),
-    index: 0,
     isDragging: false,
     directionQuery: '',
     directionDropdownOpen: true,

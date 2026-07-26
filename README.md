@@ -1,17 +1,15 @@
 # SL Departure Board
 
-A real-time departure board for public transit from Duvbo and Sundbyberg stations towards Stockholm C.
+A configurable real-time departure board for Stockholm public transit (SL). Add any station, transport mode, and direction filter through the built-in configurator — your setup is encoded in the URL, so it's easy to bookmark or share.
 
 ## Features
 
-.
-
-- Real-time departures from SL API
-- Metro (Tunnelbana) from Duvbo
-- Commuter train (Pendeltag) from Sundbyberg
-- Tram (Tvarbanan) from Sundbyberg
+- Real-time departures from the SL Transport API
+- Configurable stations, transport modes (Tunnelbana, Pendeltåg, Tvärbanan, Buss), and direction filters
 - Walking time indicators showing when to leave
 - Responsive design for mobile and desktop
+
+The default board shown on first load covers Metro from Duvbo and Commuter train + Tram from Sundbyberg, towards Stockholm — open the ⚙ menu to configure your own.
 
 ## Tech Stack
 
@@ -37,6 +35,15 @@ pnpm build
 
 # Preview production build
 pnpm preview
+
+# Run unit tests
+pnpm test
+
+# Run end-to-end tests
+pnpm test:e2e
+
+# Lint
+pnpm lint
 ```
 
 ## Deployment
