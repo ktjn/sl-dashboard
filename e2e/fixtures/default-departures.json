@@ -1,0 +1,42 @@
+{
+  "9324": {
+    "departures": [
+      {
+        "destination": "Hjulsta",
+        "direction": "Hjulsta",
+        "display": "3 min",
+        "scheduled": "2026-07-25T10:00:00Z",
+        "expected": "2026-07-25T10:00:00Z",
+        "line": { "id": 17, "designation": "17", "transport_mode": "METRO" }
+      },
+      {
+        "destination": "T-Centralen",
+        "direction": "Kungsträdgården",
+        "display": "5 min",
+        "scheduled": "2026-07-25T10:02:00Z",
+        "expected": "2026-07-25T10:02:00Z",
+        "line": { "id": 17, "designation": "17", "transport_mode": "METRO" }
+      }
+    ]
+  },
+  "9325": {
+    "departures": [
+      {
+        "destination": "Stockholm City",
+        "direction": "Stockholm City",
+        "display": "4 min",
+        "scheduled": "2026-07-25T10:01:00Z",
+        "expected": "2026-07-25T10:01:00Z",
+        "line": { "id": 40, "designation": "40", "transport_mode": "TRAIN" }
+      },
+      {
+        "destination": "Sickla",
+        "direction": "Sickla",
+        "display": "6 min",
+        "scheduled": "2026-07-25T10:03:00Z",
+        "expected": "2026-07-25T10:03:00Z",
+        "line": { "id": 30, "designation": "30", "transport_mode": "TRAM" }
+      }
+    ]
+  }
+}
