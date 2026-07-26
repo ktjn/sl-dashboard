@@ -2,34 +2,34 @@ import type { TransportMode, TransportTypeConfig, StationConfig } from './types'
 
 export const TRANSPORT_TYPES: Record<TransportMode, TransportTypeConfig> = {
   METRO: { name: 'Tunnelbana', icon: 'T', color: '#ffffff', bgColor: '#000000' },
-  TRAM: { name: 'Tvärbanan', icon: 'L', color: '#ffffff', bgColor: '#7D4E24' },
-  TRAIN: { name: 'Pendeltåg', icon: 'J', color: '#ffffff', bgColor: '#EC619F' },
-  BUS: { name: 'Buss', icon: 'B', color: '#ffffff', bgColor: '#1E88E5' }
+  TRAM: { name: 'Tvärbanan', icon: 'L', color: '#ffffff', bgColor: '#a36b00' },
+  TRAIN: { name: 'Pendeltåg', icon: 'J', color: '#ffffff', bgColor: '#cc417f' },
+  BUS: { name: 'Buss', icon: 'B', color: '#ffffff', bgColor: '#2870f0' }
 }
 
 export const LINE_COLORS: Record<number, string> = {
   // Metro green line
-  17: '#009B3A',
-  18: '#009B3A',
-  19: '#009B3A',
+  17: '#148541',
+  18: '#148541',
+  19: '#148541',
   // Metro red line
-  13: '#E8331B',
-  14: '#E8331B',
+  13: '#d71d24',
+  14: '#d71d24',
   // Metro blue line
-  10: '#0066B3',
-  11: '#0066B3',
+  10: '#007db8',
+  11: '#007db8',
   // Tvärbanan
-  30: '#7D4E24',
-  31: '#7D4E24',
+  30: '#a36b00',
+  31: '#a36b00',
   // Pendeltåg (pink)
-  40: '#EC619F',
-  41: '#EC619F',
-  42: '#EC619F',
-  43: '#EC619F',
-  44: '#EC619F',
-  45: '#EC619F',
-  46: '#EC619F',
-  48: '#EC619F',
+  40: '#cc417f',
+  41: '#cc417f',
+  42: '#cc417f',
+  43: '#cc417f',
+  44: '#cc417f',
+  45: '#cc417f',
+  46: '#cc417f',
+  48: '#cc417f',
 }
 
 export const STOCKHOLM_DIRECTIONS = [
