@@ -236,7 +236,7 @@ body {
 }
 
 .leave-value.urgent {
-  color: #ce3333;
+  color: #f05555;
 }
 
 .leave-value.too-late {
@@ -359,7 +359,7 @@ body {
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
-  color: #ce3333;
+  color: #f05555;
 }
 
 .error button {
@@ -599,7 +599,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #20252c;
+  background: #8a8e93;
   border-radius: 4px;
 }
 
@@ -977,7 +977,7 @@ body {
 }
 
 .configurator-result-error {
-  color: #ce3333;
+  color: #f05555;
 }
 
 .configurator-result-id {
