@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { mockDepartures, mockDeparturesError } from './mock-sl-api'
+import { mockDepartures, mockDeparturesError, mockDeviations } from './mock-sl-api'
 
 test('shows a loading spinner before departures resolve', async ({ page }) => {
   await mockDepartures(page, undefined, { delayMs: 500 })
@@ -42,4 +42,27 @@ test('shows an error message with a working retry button', async ({ page }) => {
 
   await expect(page.locator('.error')).toHaveCount(0)
   await expect(page.locator('.section-title').first()).toBeVisible()
+})
+
+test('shows major incident banner and inline station deviation', async ({ page }) => {
+  await mockDepartures(page)
+  await mockDeviations(page, {
+    '9324': [
+      {
+        deviation_case_id: 1,
+        priority: { importance_level: 8 },
+        scope: { lines: [{ id: 17, transport_mode: 'METRO' }] },
+        message_variants: [{ header: 'Stopp på gröna linjen', language: 'sv' }],
+      },
+      {
+        deviation_case_id: 2,
+        priority: { importance_level: 2 },
+        scope: { lines: [{ id: 17, transport_mode: 'METRO' }] },
+        message_variants: [{ header: 'Hissen ur funktion', language: 'sv' }],
+      },
+    ],
+  })
+  await page.goto('/')
+  await expect(page.locator('.deviation-major')).toContainText('Stopp på gröna linjen')
+  await expect(page.locator('.deviation-minor')).toContainText('Hissen ur funktion')
 })

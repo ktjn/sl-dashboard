@@ -56,6 +56,8 @@ export const STOCKHOLM_DIRECTIONS = [
 export const MODES: TransportMode[] = ['METRO', 'TRAIN', 'TRAM', 'BUS']
 
 export const DEPARTURE_FETCH_INTERVAL_MS = 30_000
+export const DEVIATION_FETCH_INTERVAL_MS = 120_000
+export const MAJOR_IMPORTANCE_LEVEL = 5
 export const CLOCK_TICK_INTERVAL_MS = 1_000
 
 export const DEFAULT_STATIONS: StationConfig[] = [

@@ -37,3 +37,12 @@ export async function mockDeparturesError(page: Page): Promise<void> {
 export async function mockAllSites(page: Page): Promise<void> {
   await page.route(SITES_URL, route => route.fulfill({ json: ALL_SITES }))
 }
+
+const DEVIATIONS_URL = '**/deviations.integration.sl.se/v1/messages**'
+
+export async function mockDeviations(page: Page, bySite: Record<string, unknown[]> = {}): Promise<void> {
+  await page.route(DEVIATIONS_URL, route => {
+    const siteId = new URL(route.request().url()).searchParams.get('site')
+    return route.fulfill({ json: (siteId && bySite[siteId]) || [] })
+  })
+}

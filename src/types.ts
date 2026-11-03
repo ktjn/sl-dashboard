@@ -52,3 +52,35 @@ export interface StationConfig {
 export interface AppConfig {
   stations: StationConfig[]
 }
+
+export interface DeviationScopeLine {
+  id: number
+  designation?: string
+  transport_mode: TransportMode
+}
+
+export interface DeviationScopeStopArea {
+  id: number
+  name?: string
+  transport_mode?: TransportMode
+}
+
+export interface DeviationVariant {
+  header: string
+  details?: string
+  weblink?: string
+  language?: string
+}
+
+export interface DeviationMessage {
+  deviation_case_id: number
+  publish?: { from?: string; upto?: string }
+  priority?: { importance_level?: number; influence_level?: number; urgency_level?: number }
+  message_variants: DeviationVariant[]
+  scope?: { lines?: DeviationScopeLine[]; stop_areas?: DeviationScopeStopArea[] }
+}
+
+export interface SiteDeviation {
+  message: DeviationMessage
+  originSiteId: number
+}
