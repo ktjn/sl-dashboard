@@ -7,6 +7,9 @@ import Configurator from './components/Configurator'
 import Clock from './components/Clock'
 import { TRANSPORT_TYPES } from './constants'
 import { useClock } from './hooks/useClock'
+import { useDeviations } from './hooks/useDeviations'
+import { majorIncidents, stationDeviations } from './deviations'
+import DeviationNotice from './components/DeviationNotice'
 
 function formatCurrentTime(date: Date): string {
   return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -18,6 +21,8 @@ export default function App() {
 
   const { groupedDepartures, allDepartures, loading, error, lastUpdate, refetch } = useDepartures(config)
   const currentTime = useClock()
+  const deviations = useDeviations(config)
+  const major = useMemo(() => majorIncidents(deviations, stations, currentTime), [deviations, stations, currentTime])
   const [showConfigurator, setShowConfigurator] = useState(false)
 
   // Listen for URL changes (e.g. from history.pushState in Configurator)
@@ -73,6 +78,8 @@ export default function App() {
       </header>
 
       <main className="main-content">
+        <DeviationNotice messages={major} severity="major" />
+
         {loading && (
           <div className="loading">
             <div className="loading-spinner"></div>
@@ -106,6 +113,7 @@ export default function App() {
                   departures={stationDepartures}
                   currentTime={currentTime}
                   walkingTime={station.walkTime}
+                  deviations={stationDeviations(deviations, station, currentTime)}
                 />
               )
             })}
