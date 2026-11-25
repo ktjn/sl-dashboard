@@ -1,7 +1,9 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { mockDepartures } from './mock-sl-api'
 
-test('a deep-linked ?stations= URL with an exact-match direction keyword renders only the configured station/direction', async ({ page }) => {
+test('a deep-linked ?stations= URL with an exact-match direction keyword renders only the configured station/direction', async ({
+  page,
+}) => {
   await mockDepartures(page)
   // 9324:Duvbo:METRO:10:=Kungsträdgården — the '=' exact-match keyword is
   // percent-encoded to %3D by encodeURIComponent, matching buildQueryString's encoding.

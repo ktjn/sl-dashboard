@@ -7,9 +7,10 @@ interface DeviationNoticeProps {
 }
 
 export default function DeviationNotice({ messages, severity }: DeviationNoticeProps) {
-  const items = messages
-    .map(m => ({ id: m.deviation_case_id, variant: pickVariant(m) }))
-    .filter(i => i.variant?.header)
+  const items = messages.flatMap(m => {
+    const variant = pickVariant(m)
+    return variant?.header ? [{ id: m.deviation_case_id, variant }] : []
+  })
   if (items.length === 0) return null
 
   return (
@@ -17,12 +18,16 @@ export default function DeviationNotice({ messages, severity }: DeviationNoticeP
       {items.map(({ id, variant }) => (
         <details key={id} className="deviation-item" open={severity === 'major'}>
           <summary>
-            <span className="deviation-icon" aria-hidden="true">⚠</span>
-            {variant!.header}
+            <span className="deviation-icon" aria-hidden="true">
+              ⚠
+            </span>
+            {variant.header}
           </summary>
-          {variant!.details && <p className="deviation-details">{variant!.details}</p>}
-          {variant!.weblink && /^https:\/\//.test(variant!.weblink) && (
-            <a href={variant!.weblink} target="_blank" rel="noopener noreferrer">Mer information</a>
+          {variant.details && <p className="deviation-details">{variant.details}</p>}
+          {variant.weblink && /^https:\/\//.test(variant.weblink) && (
+            <a href={variant.weblink} target="_blank" rel="noopener noreferrer">
+              Mer information
+            </a>
           )}
         </details>
       ))}

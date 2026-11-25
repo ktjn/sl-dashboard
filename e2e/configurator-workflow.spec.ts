@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test'
-import { mockDepartures, mockAllSites } from './mock-sl-api'
+import { expect, test } from '@playwright/test'
+import { mockAllSites, mockDepartures } from './mock-sl-api'
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
 
@@ -19,10 +19,7 @@ test('add, remove, clear, set a robust direction filter, copy, and apply', async
   await expect(panel.locator('.configurator-card-name', { hasText: 'Solna centrum' })).toBeVisible()
 
   // Remove it again
-  await panel
-    .locator('.configurator-card', { hasText: 'Solna centrum' })
-    .locator('.configurator-remove')
-    .click()
+  await panel.locator('.configurator-card', { hasText: 'Solna centrum' }).locator('.configurator-remove').click()
   await expect(panel.locator('.configurator-card-name', { hasText: 'Solna centrum' })).toHaveCount(0)
 
   // Set a robust ("Riktning") and a specific ("Slutstation") direction filter on Duvbo.

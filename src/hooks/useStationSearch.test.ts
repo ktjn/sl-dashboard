@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useStationSearch, __clearCacheForTests } from './useStationSearch'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { __clearCacheForTests, useStationSearch } from './useStationSearch'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -14,14 +14,15 @@ describe('useStationSearch', () => {
   it('initially loads sites and returns matches for query', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([
-        { id: 9324, name: 'Duvbo' },
-        { id: 9325, name: 'Sundbyberg' }
-      ])
+      json: () =>
+        Promise.resolve([
+          { id: 9324, name: 'Duvbo' },
+          { id: 9325, name: 'Sundbyberg' },
+        ]),
     })
 
     const { result, rerender } = renderHook(({ query }) => useStationSearch(query), {
-      initialProps: { query: '' }
+      initialProps: { query: '' },
     })
 
     // Should be loading initially
@@ -39,7 +40,7 @@ describe('useStationSearch', () => {
   it('uses cache and does not fetch again', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([{ id: 1, name: 'Test' }])
+      json: () => Promise.resolve([{ id: 1, name: 'Test' }]),
     })
 
     const { result, unmount } = renderHook(() => useStationSearch('te'))
@@ -57,7 +58,7 @@ describe('useStationSearch', () => {
   it('returns empty array if query is too short (< 2 chars)', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([{ id: 1, name: 'Test' }])
+      json: () => Promise.resolve([{ id: 1, name: 'Test' }]),
     })
 
     const { result } = renderHook(() => useStationSearch('t'))

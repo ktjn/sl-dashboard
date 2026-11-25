@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { isActive, isMajor, affectsMode, majorIncidents, stationDeviations } from './deviations'
+import { describe, expect, it } from 'vitest'
+import { affectsMode, isActive, isMajor, majorIncidents, stationDeviations } from './deviations'
 import type { DeviationMessage, SiteDeviation, StationConfig } from './types'
 
 const now = new Date('2026-11-03T12:00:00Z')

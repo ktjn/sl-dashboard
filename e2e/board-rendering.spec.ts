@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { mockDepartures, mockDeparturesError, mockDeviations } from './mock-sl-api'
 
 test('shows a loading spinner before departures resolve', async ({ page }) => {

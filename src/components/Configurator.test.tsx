@@ -1,29 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, waitFor, screen, fireEvent, cleanup } from '@testing-library/react'
-import Configurator from './Configurator'
-import type { AppConfig } from '../types'
-import type { SiteSearchResult } from '../hooks/useStationSearch'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SiteDeparture } from '../hooks/useDepartures'
+import type { SiteSearchResult } from '../hooks/useStationSearch'
+import type { AppConfig } from '../types'
+import Configurator from './Configurator'
 
 // Mock sub-components
 vi.mock('./StationCard', () => ({
   default: ({ station, onRemove }: { station: { name: string; mode: string }; onRemove: () => void }) => (
     <div data-testid="station-card">
       {station.name} ({station.mode})
-      <button onClick={onRemove}>Remove</button>
+      <button type="button" onClick={onRemove}>
+        Remove
+      </button>
     </div>
-  )
+  ),
 }))
 
 // Define search mock outside to be controllable
 const mockSearchState = {
   results: [] as SiteSearchResult[],
   loading: false,
-  error: null as string | null
+  error: null as string | null,
 }
 
 vi.mock('../hooks/useStationSearch', () => ({
-  useStationSearch: () => mockSearchState
+  useStationSearch: () => mockSearchState,
 }))
 
 const mockFetch = vi.fn()
@@ -36,36 +38,33 @@ describe('Configurator', () => {
     mockSearchState.results = []
     mockSearchState.loading = false
     mockSearchState.error = null
-    
+
     // Default fetch mock
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ departures: [] })
+      json: () => Promise.resolve({ departures: [] }),
     })
 
     // Reset clipboard
     Object.assign(navigator, {
       clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined)
-      }
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
     })
   })
 
   const config: AppConfig = {
-    stations: [
-      { siteId: 9999, name: 'Initial', mode: 'METRO', walkTime: 10, direction: 'all' }
-    ]
+    stations: [{ siteId: 9999, name: 'Initial', mode: 'METRO', walkTime: 10, direction: 'all' }],
   }
 
   it('auto-corrects station mode if it is not available at the site', async () => {
     // Initial fetch for the site returns only BUS departures
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        departures: [
-          { line: { transport_mode: 'BUS' } }
-        ]
-      })
+      json: () =>
+        Promise.resolve({
+          departures: [{ line: { transport_mode: 'BUS' } }],
+        }),
     })
 
     render(<Configurator config={config} allDepartures={[]} onClose={vi.fn()} />)
@@ -84,7 +83,7 @@ describe('Configurator', () => {
     // with only BUS available for the initial station's site — mode should correct on first render,
     // not just after a later fetch-driven reference change.
     const allDepartures: SiteDeparture[] = [
-      { originSiteId: 9999, departure: { line: { transport_mode: 'BUS' } } as SiteDeparture['departure'] }
+      { originSiteId: 9999, departure: { line: { transport_mode: 'BUS' } } as SiteDeparture['departure'] },
     ]
 
     render(<Configurator config={config} allDepartures={allDepartures} onClose={vi.fn()} />)
@@ -96,11 +95,11 @@ describe('Configurator', () => {
 
   it('removes a station when remove button is clicked', async () => {
     render(<Configurator config={config} allDepartures={[]} onClose={vi.fn()} />)
-    
+
     expect(screen.getByTestId('station-card')).toBeDefined()
-    
+
     fireEvent.click(screen.getByText('Remove'))
-    
+
     expect(screen.queryByTestId('station-card')).toBeNull()
   })
 
@@ -125,7 +124,7 @@ describe('Configurator', () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('1234'))
     })
-    
+
     // Should now have 2 station cards
     expect(screen.getAllByTestId('station-card')).toHaveLength(2)
   })

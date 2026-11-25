@@ -4,8 +4,8 @@ import type { DeviationMessage, DeviationVariant, SiteDeviation, StationConfig }
 export function isActive(message: DeviationMessage, now: Date): boolean {
   const from = message.publish?.from ? new Date(message.publish.from) : null
   const upto = message.publish?.upto ? new Date(message.publish.upto) : null
-  if (from && !isNaN(from.getTime()) && from > now) return false
-  if (upto && !isNaN(upto.getTime()) && upto < now) return false
+  if (from && !Number.isNaN(from.getTime()) && from > now) return false
+  if (upto && !Number.isNaN(upto.getTime()) && upto < now) return false
   return true
 }
 
@@ -37,12 +37,14 @@ function dedupe(messages: DeviationMessage[]): DeviationMessage[] {
 export function deviationsForStation(
   deviations: SiteDeviation[],
   station: StationConfig,
-  now: Date
+  now: Date,
 ): DeviationMessage[] {
   return dedupe(
     deviations
-      .filter(d => d.originSiteId === station.siteId && affectsMode(d.message, station.mode) && isActive(d.message, now))
-      .map(d => d.message)
+      .filter(
+        d => d.originSiteId === station.siteId && affectsMode(d.message, station.mode) && isActive(d.message, now),
+      )
+      .map(d => d.message),
   )
 }
 

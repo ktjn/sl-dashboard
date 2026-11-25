@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { parseConfigFromQuery, buildQueryString, matchesDirection } from './utils'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_STATIONS } from './constants'
 import type { Departure } from './types'
+import { buildQueryString, matchesDirection, parseConfigFromQuery } from './utils'
 
 function makeDeparture(destination: string): Departure {
   return {
@@ -30,9 +30,7 @@ describe('parseConfigFromQuery — valid inputs', () => {
   it('parses a single station with all 5 fields', () => {
     setLocation('?stations=9324:Duvbo:METRO:10:stockholm')
     const { stations } = parseConfigFromQuery()
-    expect(stations).toEqual([
-      { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10, direction: 'stockholm' },
-    ])
+    expect(stations).toEqual([{ siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10, direction: 'stockholm' }])
   })
 
   it('parses multiple stations', () => {
@@ -114,9 +112,11 @@ describe('buildQueryString — encoding', () => {
   })
 
   it('round-trips a direction containing a pipe (normal multi-keyword)', () => {
-    const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'stockholm|centralen' }]
+    const original = [
+      { siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'stockholm|centralen' },
+    ]
     const url = buildQueryString(original)
-    setLocation('?' + url.split('?')[1])
+    setLocation(`?${url.split('?')[1]}`)
     const { stations } = parseConfigFromQuery()
     expect(stations[0].direction).toBe('stockholm|centralen')
   })
@@ -128,7 +128,7 @@ describe('round-trip verification', () => {
   it('direction containing ":" is preserved after round-trip', () => {
     const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo:bar' }]
     const url = buildQueryString(original)
-    setLocation('?' + url.split('?')[1])
+    setLocation(`?${url.split('?')[1]}`)
     const { stations } = parseConfigFromQuery()
     expect(stations[0].direction).toBe('foo:bar')
   })
@@ -136,7 +136,7 @@ describe('round-trip verification', () => {
   it('direction containing "," is preserved after round-trip', () => {
     const original = [{ siteId: 9324, name: 'Duvbo', mode: 'METRO' as const, walkTime: 10, direction: 'foo,bar' }]
     const url = buildQueryString(original)
-    setLocation('?' + url.split('?')[1])
+    setLocation(`?${url.split('?')[1]}`)
     const { stations } = parseConfigFromQuery()
     expect(stations[0].direction).toBe('foo,bar')
   })

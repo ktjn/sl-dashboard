@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useDepartures } from './useDepartures'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AppConfig } from '../types'
+import { useDepartures } from './useDepartures'
 
 // Mock fetch globally
 const mockFetch = vi.fn()
@@ -15,22 +15,22 @@ describe('useDepartures', () => {
   const config: AppConfig = {
     stations: [
       { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10, direction: 'stockholm' },
-      { siteId: 9325, name: 'Sundbyberg', mode: 'TRAIN', walkTime: 15, direction: 'all' }
-    ]
+      { siteId: 9325, name: 'Sundbyberg', mode: 'TRAIN', walkTime: 15, direction: 'all' },
+    ],
   }
 
   const mockMetroDeparture = {
     destination: 'Kungsträdgården',
     display: '2 min',
     scheduled: '2026-04-04T12:00:00Z',
-    line: { id: 10, designation: '10', transport_mode: 'METRO' }
+    line: { id: 10, designation: '10', transport_mode: 'METRO' },
   }
 
   const mockTrainDeparture = {
     destination: 'Uppsala C',
     display: '5 min',
     scheduled: '2026-04-04T12:05:00Z',
-    line: { id: 40, designation: '40', transport_mode: 'TRAIN' }
+    line: { id: 40, designation: '40', transport_mode: 'TRAIN' },
   }
 
   it('successfully fetches and groups departures', async () => {
@@ -38,13 +38,13 @@ describe('useDepartures', () => {
       if (url.includes('9324')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ departures: [mockMetroDeparture] })
+          json: () => Promise.resolve({ departures: [mockMetroDeparture] }),
         })
       }
       if (url.includes('9325')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ departures: [mockTrainDeparture] })
+          json: () => Promise.resolve({ departures: [mockTrainDeparture] }),
         })
       }
       return Promise.reject(new Error('Unknown site'))
@@ -65,13 +65,13 @@ describe('useDepartures', () => {
       if (url.includes('9324')) {
         return Promise.resolve({
           ok: false,
-          status: 500
+          status: 500,
         })
       }
       if (url.includes('9325')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ departures: [mockTrainDeparture] })
+          json: () => Promise.resolve({ departures: [mockTrainDeparture] }),
         })
       }
       return Promise.reject(new Error('Unknown site'))
@@ -92,7 +92,7 @@ describe('useDepartures', () => {
   it('sets top-level error if all requests fail', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      status: 503
+      status: 503,
     })
 
     const { result } = renderHook(() => useDepartures(config))

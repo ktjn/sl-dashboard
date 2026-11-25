@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { DEPARTURE_FETCH_INTERVAL_MS } from '../constants'
+import type { AppConfig, Departure, DeparturesResponse } from '../types'
 import { matchesDirection } from '../utils'
-import type { Departure, DeparturesResponse, AppConfig } from '../types'
 
 export interface SiteDeparture {
   departure: Departure
@@ -36,12 +36,11 @@ export function useDepartures(config: AppConfig): UseDeparturesResult {
     try {
       const results = await Promise.allSettled(
         uniqueSiteIds.map(siteId =>
-          fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`)
-            .then(r => {
-              if (!r.ok) throw new Error(`API error: ${r.status}`)
-              return r.json() as Promise<DeparturesResponse>
-            })
-        )
+          fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`).then(r => {
+            if (!r.ok) throw new Error(`API error: ${r.status}`)
+            return r.json() as Promise<DeparturesResponse>
+          }),
+        ),
       )
 
       const withOrigin: SiteDeparture[] = []

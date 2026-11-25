@@ -36,19 +36,22 @@ pnpm build
 # Preview production build
 pnpm preview
 
-# Run unit tests
+# Run unit tests (local only)
 pnpm test
 
-# Run end-to-end tests
+# Run end-to-end tests (local only)
 pnpm test:e2e
 
-# Lint
+# Lint and check formatting
 pnpm lint
+
+# Format and auto-fix with Biome
+pnpm format
 ```
 
 ## Deployment
 
-The app is automatically deployed to GitHub Pages on push to main.
+Pull requests run lint and build checks in CI. Pushes to `main` run lint, build, and deploy to GitHub Pages automatically. Unit and E2E tests are run locally.
 
 Live at: https://ktjn.github.io/sl-dashboard/
 

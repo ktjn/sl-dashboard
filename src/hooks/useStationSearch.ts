@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface SiteSearchResult {
   id: number
@@ -44,9 +44,7 @@ export function useStationSearch(query: string): UseStationSearchResult {
   }, [])
 
   const q = query.trim().toLowerCase()
-  const results = q.length < 2
-    ? []
-    : allSites.filter(s => s.name.toLowerCase().includes(q)).slice(0, 20)
+  const results = q.length < 2 ? [] : allSites.filter(s => s.name.toLowerCase().includes(q)).slice(0, 20)
 
   return { results, loading, error }
 }

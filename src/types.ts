@@ -46,7 +46,7 @@ export interface StationConfig {
   name: string
   mode: TransportMode
   walkTime: number
-  direction: string  // 'stockholm' | 'all' | 'keyword1|keyword2'
+  direction: string // 'stockholm' | 'all' | 'keyword1|keyword2'
 }
 
 export interface AppConfig {
