@@ -1,9 +1,9 @@
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import StationCard from './StationCard'
-import type { StationConfig } from '../types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SiteDeparture } from '../hooks/useDepartures'
+import type { StationConfig } from '../types'
+import StationCard from './StationCard'
 
 function makeStation(overrides: Partial<StationConfig> = {}): StationConfig {
   return { siteId: 9324, name: 'Duvbo', mode: 'METRO', walkTime: 10, direction: '', ...overrides }
@@ -17,8 +17,8 @@ function makeDeparture(destination: string, direction: string | undefined, origi
       direction,
       display: '5 min',
       scheduled: '2026-04-04T12:10:00Z',
-      line: { id: 10, designation: '10', transport_mode: 'METRO' }
-    }
+      line: { id: 10, designation: '10', transport_mode: 'METRO' },
+    },
   }
 }
 
@@ -100,10 +100,7 @@ describe('StationCard direction picker', () => {
   it('excludes an already-selected direction tag from the Riktning dropdown', () => {
     renderCard({
       station: makeStation({ direction: '=Kungsträdgården' }),
-      availableDepartures: [
-        makeDeparture('T-Centralen', 'Kungsträdgården'),
-        makeDeparture('Hjulsta', 'Hjulsta'),
-      ],
+      availableDepartures: [makeDeparture('T-Centralen', 'Kungsträdgården'), makeDeparture('Hjulsta', 'Hjulsta')],
     })
     expect(screen.queryByRole('button', { name: 'Kungsträdgården' })).toBeNull()
   })

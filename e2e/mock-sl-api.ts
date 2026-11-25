@@ -19,11 +19,14 @@ const SITES_URL = '**/transport.integration.sl.se/v1/sites'
 export async function mockDepartures(
   page: Page,
   bySite: DeparturesBySite = DEFAULT_DEPARTURES,
-  opts: { delayMs?: number } = {}
+  opts: { delayMs?: number } = {},
 ): Promise<void> {
   await page.route(DEPARTURES_URL, async route => {
     if (opts.delayMs) await new Promise(resolve => setTimeout(resolve, opts.delayMs))
-    const match = route.request().url().match(/\/sites\/(\d+)\/departures/)
+    const match = route
+      .request()
+      .url()
+      .match(/\/sites\/(\d+)\/departures/)
     const siteId = match?.[1]
     const body = (siteId && bySite[siteId]) || { departures: [] }
     await route.fulfill({ json: body })

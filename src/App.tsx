@@ -1,15 +1,15 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { useDepartures } from './hooks/useDepartures'
-import { parseConfigFromQuery } from './utils'
-import TransportSection from './components/TransportSection'
-import Configurator from './components/Configurator'
 import Clock from './components/Clock'
-import { TRANSPORT_TYPES } from './constants'
-import { useClock } from './hooks/useClock'
-import { useDeviations } from './hooks/useDeviations'
-import { majorIncidents, stationDeviations } from './deviations'
+import Configurator from './components/Configurator'
 import DeviationNotice from './components/DeviationNotice'
+import TransportSection from './components/TransportSection'
+import { TRANSPORT_TYPES } from './constants'
+import { majorIncidents, stationDeviations } from './deviations'
+import { useClock } from './hooks/useClock'
+import { useDepartures } from './hooks/useDepartures'
+import { useDeviations } from './hooks/useDeviations'
+import { parseConfigFromQuery } from './utils'
 
 function formatCurrentTime(date: Date): string {
   return date.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -66,6 +66,7 @@ export default function App() {
             <Clock />
             {!showConfigurator && (
               <button
+                type="button"
                 className="settings-button"
                 onClick={() => setShowConfigurator(true)}
                 title="Konfigurera"
@@ -90,7 +91,9 @@ export default function App() {
         {error && (
           <div className="error">
             <p>Kunde inte hämta avgångar: {error}</p>
-            <button onClick={refetch}>Försök igen</button>
+            <button type="button" onClick={refetch}>
+              Försök igen
+            </button>
           </div>
         )}
 
@@ -100,15 +103,20 @@ export default function App() {
           </div>
         )}
 
-        {!loading && (
-          <>
-            {stations.map((station, index) => {
+        {!loading &&
+          (() => {
+            const keyCounts = new Map<string, number>()
+            return stations.map((station, index) => {
+              const baseKey = `${station.siteId}-${station.mode}-${station.direction}`
+              const occurrence = keyCounts.get(baseKey) ?? 0
+              keyCounts.set(baseKey, occurrence + 1)
+
               const stationDepartures = groupedDepartures.find(g => g.stationIndex === index)?.departures ?? []
               if (stationDepartures.length === 0) return null
 
               return (
                 <TransportSection
-                  key={`${station.siteId}-${station.mode}-${index}`}
+                  key={`${baseKey}-${occurrence}`}
                   title={`${TRANSPORT_TYPES[station.mode].name} från ${station.name}`}
                   departures={stationDepartures}
                   currentTime={currentTime}
@@ -116,15 +124,12 @@ export default function App() {
                   deviations={stationDeviations(deviations, station, currentTime)}
                 />
               )
-            })}
-          </>
-        )}
+            })
+          })()}
       </main>
 
       <footer className="footer">
-        {lastUpdate && (
-          <span>Uppdaterad: {formatCurrentTime(lastUpdate)}</span>
-        )}
+        {lastUpdate && <span>Uppdaterad: {formatCurrentTime(lastUpdate)}</span>}
         <span className="live-indicator">
           <span className="live-dot"></span>
           Realtid från SL

@@ -14,7 +14,7 @@ export default function Clock() {
         {currentTime.toLocaleDateString('sv-SE', {
           weekday: 'long',
           day: 'numeric',
-          month: 'long'
+          month: 'long',
         })}
       </div>
     </div>

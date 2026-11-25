@@ -1,6 +1,6 @@
 import { memo } from 'react'
-import { formatTime, getLineColor } from '../utils'
 import type { Departure } from '../types'
+import { formatTime, getLineColor } from '../utils'
 
 interface DepartureRowProps {
   departure: Departure
@@ -24,7 +24,9 @@ function DepartureRow({ departure, currentTime, walkingTime }: DepartureRowProps
   const isUrgent = shouldLeaveNow || shouldLeaveSoon
 
   return (
-    <div className={`departure-row ${tooLate ? 'too-late' : shouldLeaveNow ? 'leave-now' : shouldLeaveSoon ? 'leave-soon' : ''}`}>
+    <div
+      className={`departure-row ${tooLate ? 'too-late' : shouldLeaveNow ? 'leave-now' : shouldLeaveSoon ? 'leave-soon' : ''}`}
+    >
       <div className="line-info">
         <div className="line-badge" style={{ backgroundColor: lineColor }}>
           <span className="line-number">{departure.line.designation}</span>
@@ -32,13 +34,13 @@ function DepartureRow({ departure, currentTime, walkingTime }: DepartureRowProps
       </div>
       <div className="destination-info">
         <span className="destination">{departure.destination}</span>
-        {departure.stop_area && (
-          <span className="via">{departure.stop_area.name}</span>
-        )}
+        {departure.stop_area && <span className="via">{departure.stop_area.name}</span>}
       </div>
       <div className="leave-time">
         <span className="leave-label">Gå</span>
-        <span className={`leave-value ${tooLate ? 'too-late' : shouldLeaveNow ? 'blink urgent' : shouldLeaveSoon ? 'soon' : ''}`}>
+        <span
+          className={`leave-value ${tooLate ? 'too-late' : shouldLeaveNow ? 'blink urgent' : shouldLeaveSoon ? 'soon' : ''}`}
+        >
           {leaveDisplay}
         </span>
       </div>
@@ -49,9 +51,7 @@ function DepartureRow({ departure, currentTime, walkingTime }: DepartureRowProps
         </div>
       )}
       <div className="time-info">
-        <span className={`minutes ${isUrgent ? 'blink' : ''}`}>
-          {departure.display}
-        </span>
+        <span className={`minutes ${isUrgent ? 'blink' : ''}`}>{departure.display}</span>
         <span className="actual-time">{formatTime(departure.expected || departure.scheduled)}</span>
       </div>
     </div>

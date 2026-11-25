@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
-import DeviationNotice from './DeviationNotice'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { DeviationMessage } from '../types'
+import DeviationNotice from './DeviationNotice'
 
 const base: DeviationMessage = {
   deviation_case_id: 1,

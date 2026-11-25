@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { CLOCK_TICK_INTERVAL_MS } from '../constants'
 
 export function useClock(): Date {

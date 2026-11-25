@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
-import { useStationSearch } from '../hooks/useStationSearch'
-import { buildQueryString } from '../utils'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MODES } from '../constants'
-import type { StationConfig, AppConfig } from '../types'
 import type { SiteDeparture } from '../hooks/useDepartures'
+import { useStationSearch } from '../hooks/useStationSearch'
+import type { AppConfig, StationConfig } from '../types'
+import { buildQueryString } from '../utils'
 import StationCard from './StationCard'
 
 interface ConfiguratorProps {
@@ -13,12 +13,14 @@ interface ConfiguratorProps {
 }
 
 interface StationConfigWithQuery extends StationConfig {
+  uid: number
   directionQuery: string
 }
 
 export default function Configurator({ config, allDepartures, onClose }: ConfiguratorProps) {
+  const nextUid = useRef(0)
   const [stations, setStations] = useState<StationConfigWithQuery[]>(() =>
-    config.stations.map(s => ({ ...s, directionQuery: '' }))
+    config.stations.map(s => ({ ...s, uid: nextUid.current++, directionQuery: '' })),
   )
   const [query, setQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
@@ -30,10 +32,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   const searchRef = useRef<HTMLDivElement>(null)
 
   // Always merge fresh prop data with any extra departures fetched for new stations
-  const availableDepartures = useMemo(
-    () => [...allDepartures, ...extraDepartures],
-    [allDepartures, extraDepartures]
-  )
+  const availableDepartures = useMemo(() => [...allDepartures, ...extraDepartures], [allDepartures, extraDepartures])
 
   const fetchDeparturesForSite = useCallback(async (siteId: number) => {
     if (fetchedSiteIds.current.has(siteId)) return
@@ -42,9 +41,10 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
       const r = await fetch(`https://transport.integration.sl.se/v1/sites/${siteId}/departures`)
       if (!r.ok) return
       const data = await r.json()
-      const newDeps: SiteDeparture[] = (data.departures ?? []).map(
-        (d: SiteDeparture['departure']) => ({ departure: d, originSiteId: siteId })
-      )
+      const newDeps: SiteDeparture[] = (data.departures ?? []).map((d: SiteDeparture['departure']) => ({
+        departure: d,
+        originSiteId: siteId,
+      }))
       setExtraDepartures(prev => [...prev, ...newDeps])
     } catch {
       // no destinations available for this site
@@ -53,13 +53,11 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
 
   // Fetch data for initial stations if not already in allDepartures
   useEffect(() => {
-    stations.forEach(s => fetchDeparturesForSite(s.siteId))
+    for (const s of stations) {
+      fetchDeparturesForSite(s.siteId)
+    }
   }, [stations, fetchDeparturesForSite])
 
-  // When departure data loads for a site, auto-correct any station whose mode is not available there.
-  // Uses React's "adjust state during render" pattern instead of an effect, since calling setState
-  // synchronously inside useEffect triggers an extra render pass (react-hooks/set-state-in-effect).
-  // Seeded null (not availableDepartures) so the correction also runs on the very first render.
   const [prevAvailableDepartures, setPrevAvailableDepartures] = useState<SiteDeparture[] | null>(null)
   if (availableDepartures !== prevAvailableDepartures) {
     setPrevAvailableDepartures(availableDepartures)
@@ -70,9 +68,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
         if (!siteHasData) return station
 
         const validModes = MODES.filter(m =>
-          availableDepartures.some(d =>
-            d.originSiteId === station.siteId && d.departure.line.transport_mode === m
-          )
+          availableDepartures.some(d => d.originSiteId === station.siteId && d.departure.line.transport_mode === m),
         )
 
         if (validModes.length > 0 && !validModes.includes(station.mode)) {
@@ -90,7 +86,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   const generatedUrl = buildQueryString(stations)
 
   function updateStation(index: number, patch: Partial<StationConfigWithQuery>) {
-    setStations(prev => prev.map((s, i) => i === index ? { ...s, ...patch } : s))
+    setStations(prev => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)))
   }
 
   function removeStation(index: number) {
@@ -99,6 +95,7 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
 
   function addStation(id: number, name: string) {
     const newStation: StationConfigWithQuery = {
+      uid: nextUid.current++,
       siteId: id,
       name,
       mode: 'METRO',
@@ -156,11 +153,21 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
   }
 
   return (
-    <div className="configurator-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <div
+      className="configurator-overlay"
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+      onKeyDown={e => {
+        if (e.key === 'Escape' && e.target === e.currentTarget) onClose()
+      }}
+    >
       <div className="configurator-panel">
         <div className="configurator-header">
           <span>Konfigurera tavla</span>
-          <button className="configurator-close" onClick={onClose}>✕</button>
+          <button type="button" className="configurator-close" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
         <div className="configurator-body">
@@ -172,7 +179,9 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
                 <button
                   type="button"
                   className="configurator-clear-all"
-                  onClick={() => { setStations([]) }}
+                  onClick={() => {
+                    setStations([])
+                  }}
                 >
                   Rensa alla
                 </button>
@@ -183,24 +192,22 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
             )}
             {stations.map((station, index) => (
               <StationCard
-                key={`${station.siteId}-${station.mode}-${index}`}
+                key={station.uid}
                 station={station}
                 isDragging={dragIndex === index}
                 directionQuery={station.directionQuery}
                 directionDropdownOpen={directionDropdownOpen === index}
                 availableDepartures={availableDepartures}
-                onUpdate={(patch) => updateStation(index, patch)}
+                onUpdate={patch => updateStation(index, patch)}
                 onRemove={() => removeStation(index)}
                 onDragStart={() => handleDragStart(index)}
                 onDrop={() => handleDrop(index)}
                 onDragEnd={() => setDragIndex(null)}
-                onDirectionQueryChange={(value) =>
-                  updateStation(index, { directionQuery: value })
-                }
+                onDirectionQueryChange={value => updateStation(index, { directionQuery: value })}
                 onDirectionDropdownOpen={() => setDirectionDropdownOpen(index)}
                 onDirectionDropdownClose={() => setDirectionDropdownOpen(null)}
-                onAddDirectionTag={(tag) => addDirectionTag(index, tag)}
-                onRemoveDirectionTag={(tag) => removeDirectionTag(index, tag)}
+                onAddDirectionTag={tag => addDirectionTag(index, tag)}
+                onRemoveDirectionTag={tag => removeDirectionTag(index, tag)}
               />
             ))}
           </div>
@@ -212,18 +219,26 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
               className="configurator-search"
               placeholder="Sök stationsnamn…"
               value={query}
-              onChange={e => { setQuery(e.target.value); setShowResults(true) }}
+              onChange={e => {
+                setQuery(e.target.value)
+                setShowResults(true)
+              }}
               onFocus={() => setShowResults(true)}
             />
             {showResults && query.trim() && (
               <div className="configurator-results">
                 {searchLoading && <div className="configurator-result-item configurator-result-status">Söker…</div>}
-                {searchError && <div className="configurator-result-item configurator-result-status configurator-result-error">Kunde inte hämta resultat</div>}
+                {searchError && (
+                  <div className="configurator-result-item configurator-result-status configurator-result-error">
+                    Kunde inte hämta resultat
+                  </div>
+                )}
                 {!searchLoading && !searchError && results.length === 0 && (
                   <div className="configurator-result-item configurator-result-status">Inga träffar</div>
                 )}
                 {results.map(result => (
                   <button
+                    type="button"
                     key={result.id}
                     className="configurator-result-item"
                     onClick={() => addStation(result.id, result.name)}
@@ -241,10 +256,10 @@ export default function Configurator({ config, allDepartures, onClose }: Configu
             <div className="configurator-label">Genererad URL</div>
             <div className="configurator-url-preview">{generatedUrl}</div>
             <div className="configurator-actions">
-              <button className="configurator-btn" onClick={handleCopy}>
+              <button type="button" className="configurator-btn" onClick={handleCopy}>
                 {copied ? '✓ Kopierad' : '📋 Kopiera URL'}
               </button>
-              <button className="configurator-btn configurator-btn-apply" onClick={handleApply}>
+              <button type="button" className="configurator-btn configurator-btn-apply" onClick={handleApply}>
                 Använd
               </button>
             </div>

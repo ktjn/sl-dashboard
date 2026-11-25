@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import DepartureRow from './DepartureRow'
+import { describe, expect, it } from 'vitest'
 import type { Departure } from '../types'
+import DepartureRow from './DepartureRow'
 
 function makeDeparture(overrides: Partial<Departure> = {}): Departure {
   return {
@@ -10,7 +10,7 @@ function makeDeparture(overrides: Partial<Departure> = {}): Departure {
     scheduled: '2026-04-04T12:10:00Z',
     expected: '2026-04-04T12:10:00Z',
     line: { id: 10, designation: '10', transport_mode: 'METRO' },
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -22,10 +22,8 @@ describe('DepartureRow', () => {
   it('renders "Nu!" and urgent classes when minutesUntilLeave is 0', () => {
     // Departure at 12:10:00, 10 min walk -> Leave at 12:00:00
     const dep = makeDeparture({ expected: '2026-04-04T12:10:00Z' })
-    const { container } = render(
-      <DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />
-    )
-    
+    const { container } = render(<DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />)
+
     expect(screen.getByText('Nu!')).toBeDefined()
     expect(container.firstChild).toHaveClass('leave-now')
     // Should have urgent and blink classes
@@ -37,10 +35,8 @@ describe('DepartureRow', () => {
   it('renders "För sent" and too-late class when minutesUntilLeave < -1', () => {
     // Departure at 12:05:00, 10 min walk -> Leave at 11:55:00 (too late)
     const dep = makeDeparture({ expected: '2026-04-04T12:05:00Z' })
-    const { container } = render(
-      <DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />
-    )
-    
+    const { container } = render(<DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />)
+
     expect(screen.getByText('För sent')).toBeDefined()
     expect(container.firstChild).toHaveClass('too-late')
   })
@@ -48,10 +44,8 @@ describe('DepartureRow', () => {
   it('renders "1 min" and leave-soon class when minutesUntilLeave is 1', () => {
     // Departure at 12:11:00, 10 min walk -> Leave at 12:01:00 (1 min from now)
     const dep = makeDeparture({ expected: '2026-04-04T12:11:00Z' })
-    const { container } = render(
-      <DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />
-    )
-    
+    const { container } = render(<DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />)
+
     expect(screen.getByText('1 min')).toBeDefined()
     expect(container.firstChild).toHaveClass('leave-soon')
   })
@@ -59,10 +53,8 @@ describe('DepartureRow', () => {
   it('renders normally when there is plenty of time', () => {
     // Departure at 12:20:00, 10 min walk -> Leave at 12:10:00 (10 min from now)
     const dep = makeDeparture({ expected: '2026-04-04T12:20:00Z' })
-    const { container } = render(
-      <DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />
-    )
-    
+    const { container } = render(<DepartureRow departure={dep} currentTime={currentTime} walkingTime={walkingTime} />)
+
     expect(screen.getByText('10 min')).toBeDefined()
     expect(container.firstChild).not.toHaveClass('leave-now')
     expect(container.firstChild).not.toHaveClass('leave-soon')

@@ -11,7 +11,13 @@ interface TransportSectionProps {
   deviations?: DeviationMessage[]
 }
 
-export default function TransportSection({ title, departures, currentTime, walkingTime, deviations = [] }: TransportSectionProps) {
+export default function TransportSection({
+  title,
+  departures,
+  currentTime,
+  walkingTime,
+  deviations = [],
+}: TransportSectionProps) {
   const shownDepartures = departures.slice(0, 6)
   if (shownDepartures.length === 0) return null
 

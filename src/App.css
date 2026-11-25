@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Segoe UI', 'SL Gothic', Arial, sans-serif;
+  font-family: "Segoe UI", "SL Gothic", Arial, sans-serif;
   background: #12151a;
   color: #ffffff;
   min-height: 100vh;
@@ -292,8 +292,13 @@ body {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Footer */
@@ -324,8 +329,15 @@ body {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
 }
 
 /* Loading */
@@ -349,7 +361,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Deviations */
@@ -699,8 +713,12 @@ body {
 }
 
 @keyframes slide-in {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .configurator-header {

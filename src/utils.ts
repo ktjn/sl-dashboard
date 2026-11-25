@@ -1,5 +1,5 @@
-import { LINE_COLORS, STOCKHOLM_DIRECTIONS, DEFAULT_STATIONS, TRANSPORT_TYPES } from './constants'
-import type { Departure, TransportMode, AppConfig, StationConfig } from './types'
+import { DEFAULT_STATIONS, LINE_COLORS, STOCKHOLM_DIRECTIONS, TRANSPORT_TYPES } from './constants'
+import type { AppConfig, Departure, StationConfig, TransportMode } from './types'
 
 export function isTowardsStockholm(departure: Departure): boolean {
   const dest = departure.destination.toLowerCase()
@@ -56,7 +56,12 @@ export function parseConfigFromQuery(): AppConfig {
         const mode = parts[2].toUpperCase() as TransportMode
         const walkTime = parseInt(parts[3], 10)
         const direction = parts[4] ? decodeURIComponent(parts[4]) : legacyDirection
-        if (!isNaN(siteId) && name && ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) && !isNaN(walkTime)) {
+        if (
+          !Number.isNaN(siteId) &&
+          name &&
+          ['METRO', 'TRAM', 'TRAIN', 'BUS'].includes(mode) &&
+          !Number.isNaN(walkTime)
+        ) {
           parsed.push({ siteId, name, mode, walkTime, direction })
         }
       }
@@ -71,7 +76,7 @@ export function parseConfigFromQuery(): AppConfig {
 // Format: origin + pathname + ?stations=siteId:name:mode:walkTime:direction,...
 export function buildQueryString(stations: StationConfig[]): string {
   const parts = stations.map(s =>
-    [s.siteId, encodeURIComponent(s.name), s.mode, s.walkTime, encodeURIComponent(s.direction)].join(':')
+    [s.siteId, encodeURIComponent(s.name), s.mode, s.walkTime, encodeURIComponent(s.direction)].join(':'),
   )
   return `${window.location.origin}${window.location.pathname}?stations=${parts.join(',')}`
 }

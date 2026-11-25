@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import type { StationConfig, TransportMode } from '../types'
+import { MODES, TRANSPORT_TYPES } from '../constants'
 import type { SiteDeparture } from '../hooks/useDepartures'
-import { TRANSPORT_TYPES, MODES } from '../constants'
+import type { StationConfig, TransportMode } from '../types'
 
 interface StationCardProps {
   station: StationConfig
@@ -30,13 +30,10 @@ function displayTag(tag: string): string {
   return tag.startsWith('=') ? tag.slice(1) : tag
 }
 
-function getUniqueDirections(
-  station: StationConfig,
-  availableDepartures: SiteDeparture[]
-): string[] {
+function getUniqueDirections(station: StationConfig, availableDepartures: SiteDeparture[]): string[] {
   const values = availableDepartures
-    .filter(({ departure: d, originSiteId }) =>
-      originSiteId === station.siteId && d.line.transport_mode === station.mode
+    .filter(
+      ({ departure: d, originSiteId }) => originSiteId === station.siteId && d.line.transport_mode === station.mode,
     )
     .map(({ departure: d }) => d.direction)
     .filter((d): d is string => Boolean(d))
@@ -46,11 +43,11 @@ function getUniqueDirections(
 function getUniqueDestinations(
   station: StationConfig,
   availableDepartures: SiteDeparture[],
-  excluded: Set<string>
+  excluded: Set<string>,
 ): string[] {
   const values = availableDepartures
-    .filter(({ departure: d, originSiteId }) =>
-      originSiteId === station.siteId && d.line.transport_mode === station.mode
+    .filter(
+      ({ departure: d, originSiteId }) => originSiteId === station.siteId && d.line.transport_mode === station.mode,
     )
     .map(({ departure: d }) => d.destination)
     .filter(dest => !excluded.has(dest))
@@ -83,9 +80,9 @@ export default function StationCard({
   const searchWrapRef = useRef<HTMLDivElement>(null)
 
   const availableModes = availableDepartures.some(d => d.originSiteId === station.siteId)
-    ? MODES.filter(m => availableDepartures.some(d =>
-        d.originSiteId === station.siteId && d.departure.line.transport_mode === m
-      ))
+    ? MODES.filter(m =>
+        availableDepartures.some(d => d.originSiteId === station.siteId && d.departure.line.transport_mode === m),
+      )
     : MODES
 
   const tags = getDirectionTags(station.direction)
@@ -94,11 +91,11 @@ export default function StationCard({
   const selectedDestinations = new Set(tags.filter(t => !t.startsWith('=')))
   const directionOptions = filterByQuery(
     rawDirections.filter(d => !selectedDirections.has(d)),
-    directionQuery
+    directionQuery,
   )
   const destinationOptions = filterByQuery(
     getUniqueDestinations(station, availableDepartures, new Set([...rawDirections, ...selectedDestinations])),
-    directionQuery
+    directionQuery,
   )
 
   const handleBlur = (e: React.FocusEvent) => {
@@ -114,7 +111,7 @@ export default function StationCard({
       className={`configurator-card${isDragging ? ' dragging' : ''}`}
       draggable
       onDragStart={onDragStart}
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={e => e.preventDefault()}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
     >
@@ -128,7 +125,9 @@ export default function StationCard({
             onChange={e => onUpdate({ mode: e.target.value as TransportMode, direction: 'all' })}
           >
             {availableModes.map(m => (
-              <option key={m} value={m}>{TRANSPORT_TYPES[m].name}</option>
+              <option key={m} value={m}>
+                {TRANSPORT_TYPES[m].name}
+              </option>
             ))}
           </select>
           <input
@@ -155,16 +154,19 @@ export default function StationCard({
               {tags.map(tag => (
                 <span key={tag} className="configurator-tag">
                   {displayTag(tag)}
-                  <button
-                    className="configurator-tag-remove"
-                    onClick={() => onRemoveDirectionTag(tag)}
-                  >×</button>
+                  <button type="button" className="configurator-tag-remove" onClick={() => onRemoveDirectionTag(tag)}>
+                    ×
+                  </button>
                 </span>
               ))}
               <div className="configurator-direction-search-wrap" ref={searchWrapRef} onBlur={handleBlur}>
                 <input
                   className="configurator-direction-search"
-                  placeholder={availableDepartures.length === 0 ? 'Inga avgångar att välja från' : 'Lägg till riktning eller slutstation…'}
+                  placeholder={
+                    availableDepartures.length === 0
+                      ? 'Inga avgångar att välja från'
+                      : 'Lägg till riktning eller slutstation…'
+                  }
                   disabled={availableDepartures.length === 0}
                   value={directionQuery}
                   onChange={e => {
@@ -184,6 +186,7 @@ export default function StationCard({
                             <div className="configurator-direction-group-label">Riktning</div>
                             {directionOptions.map(dir => (
                               <button
+                                type="button"
                                 key={dir}
                                 className="configurator-result-item"
                                 onClick={() => onAddDirectionTag(`=${dir}`)}
@@ -198,6 +201,7 @@ export default function StationCard({
                             <div className="configurator-direction-group-label">Slutstation</div>
                             {destinationOptions.map(dest => (
                               <button
+                                type="button"
                                 key={dest}
                                 className="configurator-result-item"
                                 onClick={() => onAddDirectionTag(dest)}
@@ -216,7 +220,9 @@ export default function StationCard({
           )}
         </div>
       </div>
-      <button className="configurator-remove" onClick={onRemove}>✕</button>
+      <button type="button" className="configurator-remove" onClick={onRemove}>
+        ✕
+      </button>
     </div>
   )
 }
